@@ -1,0 +1,16 @@
+{
+  "schema_id": "JSONWISDOM_SCORE_V0_1",
+  "standard": "JSONWISDOM_HARDENED_STANDARD_V1",
+  "audit_id": "AUDIT-2026-001",
+  "total_score": 6,
+  "max_score": 6,
+  "domains": {
+    "source_integrity": {"passed": true, "points": 1},
+    "dependency_lock": {"passed": true, "points": 1},
+    "provenance_traceability": {"passed": true, "points": 1},
+    "analysis_hygiene": {"passed": true, "points": 1},
+    "build_reproducibility": {"passed": true, "points": 1},
+    "security_policy_defined": {"passed": true, "points": 1}
+  },
+  "generated_at_utc": "2026-06-16T22:30:00Z"
+}
