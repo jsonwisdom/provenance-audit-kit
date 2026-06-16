@@ -1,0 +1,20 @@
+{
+  "schema_id": "JSONWISDOM_HARDENED_STANDARD_V1",
+  "version": "1.0.0",
+  "max_score": 6,
+  "domains": {
+    "source_integrity": {"points": 1},
+    "dependency_lock": {"points": 1},
+    "provenance_traceability": {"points": 1},
+    "analysis_hygiene": {"points": 1},
+    "build_reproducibility": {"points": 1},
+    "security_policy_defined": {"points": 1}
+  },
+  "rules": {
+    "binary_scoring_only": true,
+    "partial_credit_allowed": false,
+    "customer_overrides_allowed": false,
+    "network_required_for_verification": false,
+    "policy_is_immutable": true
+  }
+}
