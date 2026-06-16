@@ -1,0 +1,18 @@
+{
+  "milestone_id": "M-2026-002",
+  "date": "2026-06-16T18:30:00Z",
+  "title": "Public Witness Protocol",
+  "evidence_url": "https://github.com/jsonwisdom/provenance-audit-kit",
+  "replay_artifact": "STATUS.md",
+  "hash": "35c0f891f5b080b9ab79451a46cf10ab8a00f6a5e0a4ac0f010444192b1ce120",
+  "witnesses": [
+    {
+      "identity": "jaywisdom.base.eth",
+      "role": "protocol_proposer"
+    }
+  ],
+  "impact_statement": "Establishes a minimal public witness protocol for independent replay verification and distributed epistemic accountability.",
+  "category": "EPISTEMIC_SECURITY",
+  "civilization_layer": "L6_EPISTEMIC_INFRASTRUCTURE",
+  "verification_state": "CLAIM"
+}
