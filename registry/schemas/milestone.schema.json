@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "JSONWisdom Milestone Schema",
+  "type": "object",
+  "required": ["milestone_id","date","title","replay_artifact","hash","witnesses","civilization_layer","verification_state","category"],
+  "properties": {
+    "milestone_id": { "type": "string", "pattern": "^M-\\d{4}-\\d{3}$" },
+    "date": { "type": "string", "format": "date-time" },
+    "title": { "type": "string" },
+    "evidence_url": { "type": "string" },
+    "replay_artifact": { "type": "string" },
+    "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "witnesses": { "type": "array" },
+    "impact_statement": { "type": "string" },
+    "category": { "type": "string", "enum": ["CIVILIZATION_MEMORY","AGENT_GOVERNANCE","EPISTEMIC_SECURITY"] },
+    "civilization_layer": { "type": "string", "enum": ["L0_DOCUMENTS","L1_DATABASES","L2_NETWORKS","L3_AUTOMATION","L4_TIME_AWARE_SYSTEMS","L5_AGENTIC_SYSTEMS","L6_EPISTEMIC_INFRASTRUCTURE"] },
+    "verification_state": { "type": "string", "enum": ["CLAIM","WITNESSED","REPLAY_VERIFIED","SUPERSEDED"] }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "milestone_id": "M-2026-000",
+  "date": "2026-06-16T17:56:00Z",
+  "title": "Genesis: Creation of the AI Civilization Milestone Registry",
+  "evidence_url": "https://github.com/jsonwisdom/provenance-audit-kit",
+  "replay_artifact": "registry/milestones/M-2026-000.json",
+  "hash": "e039da02fd89bd6c3aa22289a34905116c5c953f118b031e766be3cef9a7cd01",
+  "witnesses": [
+    {
+      "identity": "jaywisdom.base.eth",
+      "role": "genesis_operator"
+    }
+  ],
+  "impact_statement": "Established a replay-verifiable registry for civilization-scale AI transitions.",
+  "category": "CIVILIZATION_MEMORY",
+  "civilization_layer": "L6_EPISTEMIC_INFRASTRUCTURE",
+  "verification_state": "WITNESSED"
+}
