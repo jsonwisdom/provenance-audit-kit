@@ -1,22 +1,29 @@
-name: Verify Milestone Hashes
+name: Verify Milestones
 
 on:
   pull_request:
-    paths:
-      - "registry/milestones/**"
-      - "scripts/calc_hash.py"
-      - "scripts/verify_milestone_hashes.sh"
   push:
     branches: [main]
-    paths:
-      - "registry/milestones/**"
-      - "scripts/calc_hash.py"
-      - "scripts/verify_milestone_hashes.sh"
 
 jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Verify milestone canonical hashes
         run: bash scripts/verify_milestone_hashes.sh
+
+      - name: Replay verifier pass fixture
+        run: python3 verify.py --path examples/pass
+
+      - name: Replay verifier fail fixture
+        run: |
+          set +e
+          python3 verify.py --path examples/fail
+          code=$?
+          if [ "$code" -eq 0 ]; then
+            echo "FAIL fixture incorrectly passed"
+            exit 1
+          fi
+          echo "Fail fixture correctly rejected"
