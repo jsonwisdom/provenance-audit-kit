@@ -1,0 +1,22 @@
+name: Verify Milestone Hashes
+
+on:
+  pull_request:
+    paths:
+      - "registry/milestones/**"
+      - "scripts/calc_hash.py"
+      - "scripts/verify_milestone_hashes.sh"
+  push:
+    branches: [main]
+    paths:
+      - "registry/milestones/**"
+      - "scripts/calc_hash.py"
+      - "scripts/verify_milestone_hashes.sh"
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify milestone canonical hashes
+        run: bash scripts/verify_milestone_hashes.sh
