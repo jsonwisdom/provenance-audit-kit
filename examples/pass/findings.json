@@ -1,0 +1,16 @@
+{
+  "schema_id": "JSONWISDOM_FINDINGS_V0_1",
+  "standard": "JSONWISDOM_HARDENED_STANDARD_V1",
+  "audit_id": "AUDIT-2026-001",
+  "policy_sha256": "PLACEHOLDER_POLICY_HASH",
+  "evidence_sha256": "PLACEHOLDER_EVIDENCE_HASH",
+  "findings": [
+    {"domain":"source_integrity","status":"PASS","evidence_refs":["artifacts.signed_commits"],"summary":"Pass","reason":"Satisfied","recommendation":""},
+    {"domain":"dependency_lock","status":"PASS","evidence_refs":["artifacts.sbom"],"summary":"Pass","reason":"Satisfied","recommendation":""},
+    {"domain":"provenance_traceability","status":"PASS","evidence_refs":["artifacts.attestations"],"summary":"Pass","reason":"Satisfied","recommendation":""},
+    {"domain":"analysis_hygiene","status":"PASS","evidence_refs":["artifacts.workflows"],"summary":"Pass","reason":"Satisfied","recommendation":""},
+    {"domain":"build_reproducibility","status":"PASS","evidence_refs":["artifacts.attestations"],"summary":"Pass","reason":"Satisfied","recommendation":""},
+    {"domain":"security_policy_defined","status":"PASS","evidence_refs":["artifacts.branch_protection"],"summary":"Pass","reason":"Satisfied","recommendation":""}
+  ],
+  "generated_at_utc": "2026-06-16T17:05:44Z"
+}
