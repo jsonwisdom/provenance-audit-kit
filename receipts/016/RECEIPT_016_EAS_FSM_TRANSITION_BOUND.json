@@ -1,0 +1,21 @@
+{
+  "proof": "RECEIPT_016_EAS_FSM_TRANSITION_BOUND_V1",
+  "schema": "STATE_TRANSITION_SCHEMA_V0_1",
+  "schema_uid": "0xcab2d74818e170a011812e59657bf2ba235eb8eaf4cb7fa4583b27e199648c0c",
+  "attestation_uid": "0x341207030093e26636fca838da5e1881121a259fc5ef5c04638948ec115cf16e",
+  "transaction_id": "0xa53b1806e158ab6add5f6744f8aeb8dc6ba2762141832da9f65e65b540748e16",
+  "authority": "jaywisdom.base.eth",
+  "protocol": "NO_FAKE_GREEN_V1",
+  "episode": "EPISODE_004",
+  "trigger": "KITTY_TRAINING_GATE_COMMITTED",
+  "from_state": "STAGED_NOT_BROADCAST",
+  "to_state": "STAGED_WITH_TRAINING_GATE",
+  "evidence_hash": "813e7011465afd57ce804bd1bf10e987482df49a9c0d9b24d694ff8307fc3bb0",
+  "guardrail_hash": "052fc71b966d02d66a2b8f248efdab2123e7c34254d68f4360ecb0c694acb8cf",
+  "canonical_evidence_layer": "GitHub receipts + local replay kit",
+  "public_witness_layer": "EAS on Base",
+  "settlement_status": "STAGED_NOT_BROADCAST",
+  "receipt_014_status": "NOT_CREATED",
+  "no_fake_green": "ACTIVE",
+  "status": "FSM_TRANSITION_BOUND"
+}
