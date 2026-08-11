@@ -10,6 +10,6 @@
     "object_format": {"enum": ["sha1", "sha256"]},
     "object_type": {"enum": ["commit", "tree", "blob"]},
     "object_id": {"type": "string", "pattern": "^[0-9a-f]{40}([0-9a-f]{24})?$"},
-    "content_b64": {"type": "string", "minLength": 1, "contentEncoding": "base64"}
+    "content_b64": {"type": "string", "contentEncoding": "base64"}
   }
 }
