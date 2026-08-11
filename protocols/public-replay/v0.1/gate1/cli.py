@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-# Import first. This installs the offline socket guard before kernel/profile loading.
+# Import first. This installs the offline socket/process guard before kernel/profile loading.
 import network_guard
 
 import argparse
@@ -56,7 +56,14 @@ def main() -> int:
 if __name__ == "__main__":
     try:
         raise SystemExit(main())
-    except (Gate1InputError, KernelUnavailable, OSError, ValueError) as exc:
+    except (
+        Gate1InputError,
+        KernelUnavailable,
+        network_guard.NetworkProhibited,
+        network_guard.ProcessSpawnProhibited,
+        OSError,
+        ValueError,
+    ) as exc:
         print(json.dumps({
             "gate1_status": "FAIL_CLOSED_INPUT",
             "promotion_authorized": False,
