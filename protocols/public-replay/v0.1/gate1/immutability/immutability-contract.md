@@ -1,6 +1,6 @@
 # PUBLIC_REPLAY_V06_IMMUTABILITY_CONTRACT_v0.1
 
-Status: FROZEN DRAFT / TEST_EXECUTION_PENDING  
+Status: FROZEN / INDEPENDENT_SURFACE_TEST_PASSED  
 Protocol: `PUBLIC_REPLAY_PROTOCOL_v0.1`  
 Gate: `V06`
 
@@ -14,16 +14,21 @@ CORPUS_STORAGE_SEALED_AGAINST_OVERWRITE
 != AUTHORITY
 ```
 
-## 1. Production precondition
+## 1. Production posture
 
-Until an implementation conforms to this contract and independent Gate-1 tests execute successfully:
+The independent Gate-1 surface-test freeze gate has been satisfied and its raw output is retained under `gate1/test-receipts/13701b359f2d66c0bcfa45de49e621026ade3df7/`.
 
 ```text
+CONTRACT_FROZEN = TRUE
+INDEPENDENT_SURFACE_TEST = PASS
+PRODUCTION_RESOLVER_IMPLEMENTED = FALSE
 PRODUCTION_V06_PASS = PROHIBITED
 PRODUCTION_GATE1_PASS = PROHIBITED
 ```
 
 The current production resolver remains `UNRESOLVED_IMMUTABILITY_FAIL_CLOSED_v0.1`.
+
+Contract freeze does not itself authorize a V06 PASS. A conforming production resolver must be implemented and independently verified in a separate transition before production V06 may ever return PASS.
 
 ## 2. Evidence reference
 
@@ -197,6 +202,25 @@ V06_PASS != BASE_ATTESTATION
 
 Only the full Gate-1 conjunction may produce `H_G1^PASS`, and only a later authorized witness step may use that receipt.
 
-## 11. Freeze gate
+## 11. Freeze receipt
 
-This draft may be promoted from `TEST_EXECUTION_PENDING` only after the existing `gate1/tests/test_gate1_surface.py` is executed in an independent local environment and its raw result is retained. Until then, no production resolver implementation is authorized.
+The contract freeze gate was satisfied by the independently executed test surface at:
+
+```text
+head_sha = 13701b359f2d66c0bcfa45de49e621026ade3df7
+test_file_sha256 = 14c6ddb10797c1e0977f5a04651ea7420d517d468ccdad675f004021fdc8caed
+python = Python 3.12.3
+tests_run = 6
+test_exit = 0
+test_result = PASS
+raw_log_sha256 = 37d8a0769d6c800296764c21f8e08feca52d770d400afabe65713604062cf749
+```
+
+Retained artifacts:
+
+```text
+gate1/test-receipts/13701b359f2d66c0bcfa45de49e621026ade3df7/PUBLIC_REPLAY_GATE1_TEST_13701b359f2d66c0bcfa45de49e621026ade3df7.raw.log
+gate1/test-receipts/13701b359f2d66c0bcfa45de49e621026ade3df7/PUBLIC_REPLAY_GATE1_INDEPENDENT_TEST_RECEIPT_v0.1.json
+```
+
+This receipt authorizes promotion of the contract out of `TEST_EXECUTION_PENDING`. It does not implement a production resolver, does not create `V06=PASS`, and does not create `H_G1^PASS`.
