@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:jsonwisdom:public-replay:v0.1:ssa:SSA_GATE1_RECEIPT_v0.1",
   "title": "SSA_GATE1_RECEIPT_v0.1",
-  "description": "Offline Gate-1 verification receipt for an imported SSA public corpus. The receipt proves only the bounded V01-V08 evaluation over the supplied manifest and raw objects. H_G1 is intentionally excluded and must be computed from the exact receipt bytes under the declared serialization profile after serialization.",
+  "description": "Deterministic offline Gate-1 verification receipt for an imported SSA public corpus. H_G1 is external SHA-256 over the exact canonical receipt file bytes and is never embedded in those bytes.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -10,6 +10,8 @@
     "protocol_id",
     "corpus_id",
     "scope_id",
+    "profile_id",
+    "profile_sha256",
     "manifest_sha256",
     "manifest_rows_checked",
     "unique_raw_objects",
@@ -26,7 +28,7 @@
     "verification_mode",
     "network_used",
     "serialization_profile",
-    "verified_at",
+    "receiptos_kernel",
     "verifier_version"
   ],
   "properties": {
@@ -34,6 +36,8 @@
     "protocol_id": {"const": "PUBLIC_REPLAY_PROTOCOL_v0.1"},
     "corpus_id": {"type": "string", "minLength": 1},
     "scope_id": {"type": "string", "minLength": 1},
+    "profile_id": {"type": "string", "minLength": 1},
+    "profile_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
     "manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
     "manifest_rows_checked": {"type": "integer", "minimum": 0},
     "unique_raw_objects": {"type": "integer", "minimum": 0},
@@ -43,7 +47,6 @@
     "length_failures": {"type": "integer", "minimum": 0},
     "malformed_rows": {"type": "integer", "minimum": 0},
     "immutability_evidence_refs": {
-      "description": "Immutable references used to establish V06. Snapshot presence alone is insufficient to prove historical no-overwrite behavior.",
       "type": "array",
       "uniqueItems": true,
       "items": {"type": "string", "minLength": 1}
@@ -53,38 +56,14 @@
       "additionalProperties": false,
       "required": ["V01", "V02", "V03", "V04", "V05", "V06", "V07", "V08"],
       "properties": {
-        "V01": {
-          "description": "Every manifest row resolves to an existing declared raw object.",
-          "enum": ["PASS", "FAIL"]
-        },
-        "V02": {
-          "description": "Each raw object's recomputed SHA-256 matches both its content-addressed identity and the manifest declaration.",
-          "enum": ["PASS", "FAIL"]
-        },
-        "V03": {
-          "description": "Each declared byte length equals the exact raw-object byte length.",
-          "enum": ["PASS", "FAIL"]
-        },
-        "V04": {
-          "description": "A declared SHA-256 resolves to exactly one content-addressed raw-object path within the supplied corpus.",
-          "enum": ["PASS", "FAIL"]
-        },
-        "V05": {
-          "description": "Duplicate observations, if present, reference the same byte-identical raw object and are not silently collapsed as observations.",
-          "enum": ["PASS", "FAIL"]
-        },
-        "V06": {
-          "description": "The supplied immutability evidence satisfies the protocol's no-overwrite / mutation-prohibited contract. If historical immutability cannot be established from the declared evidence boundary, V06 must FAIL rather than be inferred.",
-          "enum": ["PASS", "FAIL"]
-        },
-        "V07": {
-          "description": "Every manifest row is structurally valid under the declared manifest specification/schema.",
-          "enum": ["PASS", "FAIL"]
-        },
-        "V08": {
-          "description": "No manifest row references a missing or undeclared raw object.",
-          "enum": ["PASS", "FAIL"]
-        }
+        "V01": {"description": "Manifest bytes are canonical under PUBLIC_REPLAY_MANIFEST_SPEC_v0.1 and every row is structurally valid.", "enum": ["PASS", "FAIL"]},
+        "V02": {"description": "Every manifest row resolves to an existing declared content-addressed raw object.", "enum": ["PASS", "FAIL"]},
+        "V03": {"description": "Each raw object's recomputed SHA-256 matches H_a and its content-addressed filename/reference.", "enum": ["PASS", "FAIL"]},
+        "V04": {"description": "Each declared bytes_len equals the exact raw-object byte length.", "enum": ["PASS", "FAIL"]},
+        "V05": {"description": "All rows bind to one capture_id/scope_id/profile_id tuple; scope/profile input identity matches; storage deduplication does not erase observation multiplicity.", "enum": ["PASS", "FAIL"]},
+        "V06": {"description": "Every immutability_evidence_ref is non-null and verified sufficient under the declared immutability verification contract. Presence alone never auto-passes.", "enum": ["PASS", "FAIL"]},
+        "V07": {"description": "Manifest completeness is proven for the declared required scope with zero admitted acquisition failures and no out-of-scope padding.", "enum": ["PASS", "FAIL"]},
+        "V08": {"description": "Promotion predicate: V01-V07 PASS, non-empty manifest/raw set, zero integrity counters, and empty errors. No independent evidence claim is created by V08.", "enum": ["PASS", "FAIL"]}
       }
     },
     "errors": {
@@ -97,12 +76,7 @@
           "check_id": {"enum": ["V01", "V02", "V03", "V04", "V05", "V06", "V07", "V08"]},
           "code": {"type": "string", "minLength": 1},
           "message": {"type": "string", "minLength": 1, "maxLength": 4096},
-          "manifest_row": {
-            "oneOf": [
-              {"type": "integer", "minimum": 1},
-              {"type": "null"}
-            ]
-          },
+          "manifest_row": {"oneOf": [{"type": "integer", "minimum": 1}, {"type": "null"}]},
           "evidence_ref": {"type": "string", "minLength": 1}
         }
       }
@@ -111,25 +85,27 @@
     "promotion_authorized": {"type": "boolean"},
     "verification_mode": {"const": "OFFLINE_IMPORTED_CORPUS"},
     "network_used": {"const": false},
-    "serialization_profile": {
-      "description": "Deterministic receipt-byte serialization profile used before computing external H_G1. The profile value is protocol-defined; H_G1 itself is not embedded in this receipt.",
-      "type": "string",
-      "minLength": 1
+    "serialization_profile": {"const": "RECEIPTOS_NFC_JSON_V1_LF"},
+    "receiptos_kernel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "evidence_canonicalizer_path", "evidence_canonicalizer_sha256", "receipt_json_path", "receipt_json_sha256"],
+      "properties": {
+        "repository": {"const": "jsonwisdom/receiptos-base"},
+        "evidence_canonicalizer_path": {"const": "ep/canonical.py"},
+        "evidence_canonicalizer_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "receipt_json_path": {"const": "receiptos/core/hash.py"},
+        "receipt_json_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
     },
-    "verified_at": {"type": "string", "format": "date-time"},
-    "verifier_version": {"type": "string", "minLength": 1}
+    "verifier_version": {"const": "PUBLIC_REPLAY_GATE1_v0.1"}
   },
   "allOf": [
     {
-      "if": {
-        "properties": {"gate1_status": {"const": "PASS"}},
-        "required": ["gate1_status"]
-      },
+      "if": {"properties": {"gate1_status": {"const": "PASS"}}, "required": ["gate1_status"]},
       "then": {
         "properties": {
-          "manifest_sha256": {
-            "not": {"const": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
-          },
+          "manifest_sha256": {"not": {"const": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}},
           "manifest_rows_checked": {"minimum": 1},
           "unique_raw_objects": {"minimum": 1},
           "missing_objects": {"const": 0},
@@ -141,29 +117,17 @@
           "promotion_authorized": {"const": true},
           "check_results": {
             "properties": {
-              "V01": {"const": "PASS"},
-              "V02": {"const": "PASS"},
-              "V03": {"const": "PASS"},
-              "V04": {"const": "PASS"},
-              "V05": {"const": "PASS"},
-              "V06": {"const": "PASS"},
-              "V07": {"const": "PASS"},
-              "V08": {"const": "PASS"}
+              "V01": {"const": "PASS"}, "V02": {"const": "PASS"}, "V03": {"const": "PASS"}, "V04": {"const": "PASS"},
+              "V05": {"const": "PASS"}, "V06": {"const": "PASS"}, "V07": {"const": "PASS"}, "V08": {"const": "PASS"}
             }
           }
         }
       }
     },
     {
-      "if": {
-        "properties": {"gate1_status": {"const": "FAIL"}},
-        "required": ["gate1_status"]
-      },
+      "if": {"properties": {"gate1_status": {"const": "FAIL"}}, "required": ["gate1_status"]},
       "then": {
-        "properties": {
-          "promotion_authorized": {"const": false},
-          "errors": {"minItems": 1}
-        },
+        "properties": {"promotion_authorized": {"const": false}, "errors": {"minItems": 1}},
         "anyOf": [
           {"properties": {"check_results": {"properties": {"V01": {"const": "FAIL"}}}}},
           {"properties": {"check_results": {"properties": {"V02": {"const": "FAIL"}}}}},
