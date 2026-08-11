@@ -1,0 +1,13 @@
+{
+  "id": "C09",
+  "name": "MISSING_NOT_FALSE",
+  "frozen": true,
+  "materialized_at": "2026-08-11",
+  "authority_created": false,
+  "result_vocabulary": [
+    "PASS",
+    "FAIL",
+    "MISSING",
+    "PROHIBITED"
+  ]
+}

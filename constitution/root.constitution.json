@@ -1,0 +1,14 @@
+{
+  "constitution_id": "provenance-audit-kit-root-v0.1",
+  "materialized_at": "2026-08-11",
+  "canonical_sequence": [
+    "\u2205",
+    "RULES",
+    "PATHS",
+    "EVIDENCE",
+    "KNOWLEDGE"
+  ],
+  "C11": "GATE1_AUTHORITY_BOUNDARY",
+  "authority_created": false,
+  "frozen": true
+}
