@@ -1,0 +1,8 @@
+{
+  "id": "C17_EXTRA",
+  "name": "FIXTURES_NOT_CREATE_RULES",
+  "classification": "NON_NORMATIVE",
+  "materialized_at": "2026-08-11",
+  "note": "Supplemental only, must not be counted in 16/16",
+  "boundary_lock": "SUPPLEMENTAL_MATERIAL_ONLY"
+}

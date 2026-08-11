@@ -1,0 +1,23 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"urn:jsonwisdom:public-replay:v0.1:immutability:IPFS_PIN_v0.1",
+  "title":"IPFS_PIN_v0.1",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["schema","capture_id","H_manifest","prev_H_manifest","stored_at","storage_id","no_overwrite_attestation_ref","cid","cid_version","multicodec","multihash_algorithm","local_car_ref","pin_attestation_ref"],
+  "properties":{
+    "schema":{"const":"IPFS_PIN_v0.1"},
+    "capture_id":{"type":"string","minLength":1},
+    "H_manifest":{"type":"string","pattern":"^[0-9a-f]{64}$"},
+    "prev_H_manifest":{"oneOf":[{"type":"string","pattern":"^[0-9a-f]{64}$"},{"type":"null"}]},
+    "stored_at":{"type":"string","format":"date-time"},
+    "storage_id":{"type":"string","minLength":1},
+    "no_overwrite_attestation_ref":{"type":"string","pattern":"^immutability/attestations/[0-9a-f]{64}\\.json$"},
+    "cid":{"type":"string","minLength":4},
+    "cid_version":{"enum":[0,1]},
+    "multicodec":{"type":"string","minLength":1},
+    "multihash_algorithm":{"type":"string","minLength":1},
+    "local_car_ref":{"type":"string","pattern":"^immutability/proofs/[0-9a-f]{64}\\.car$"},
+    "pin_attestation_ref":{"type":"string","pattern":"^immutability/attestations/[0-9a-f]{64}\\.json$"}
+  }
+}

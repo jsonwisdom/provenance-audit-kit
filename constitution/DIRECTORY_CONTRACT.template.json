@@ -1,0 +1,16 @@
+{
+  "directory": "REPLACE",
+  "purpose": "REPLACE",
+  "may_contain": [
+    "REPLACE"
+  ],
+  "must_not_contain": [
+    "error bodies if corpus/raw"
+  ],
+  "requires_state": {},
+  "authority_created": false,
+  "parent": "REPLACE",
+  "child_authority_rule": "A_child \u2286 A_parent",
+  "version": "v0.1",
+  "materialized_at": "2026-08-11"
+}

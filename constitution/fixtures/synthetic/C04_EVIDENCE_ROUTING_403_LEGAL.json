@@ -1,0 +1,13 @@
+{
+  "id": "C04",
+  "name": "EVIDENCE_ROUTING_403_LEGAL",
+  "frozen": true,
+  "materialized_at": "2026-08-11",
+  "authority_created": false,
+  "result_vocabulary": [
+    "PASS",
+    "FAIL",
+    "MISSING",
+    "PROHIBITED"
+  ]
+}

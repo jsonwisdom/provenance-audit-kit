@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DIRECTORY_CONTRACT",
+  "required": [
+    "directory",
+    "purpose",
+    "may_contain",
+    "must_not_contain",
+    "requires_state",
+    "authority_created",
+    "parent",
+    "child_authority_rule"
+  ],
+  "properties": {
+    "directory": {
+      "type": "string"
+    },
+    "purpose": {
+      "type": "string"
+    },
+    "may_contain": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "must_not_contain": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "requires_state": {
+      "type": "object"
+    },
+    "authority_created": {
+      "type": "boolean"
+    },
+    "parent": {
+      "type": "string"
+    },
+    "child_authority_rule": {
+      "type": "string",
+      "const": "A_child \u2286 A_parent"
+    }
+  }
+}

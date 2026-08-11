@@ -1,0 +1,81 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "SSA_REGRESSION_FIXTURE_v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "fixture_id",
+    "classification",
+    "baseline_commit",
+    "source_capture",
+    "expected_state",
+    "routing_assertions",
+    "authority_created"
+  ],
+  "properties": {
+    "schema": { "const": "SSA_REGRESSION_FIXTURE_v0.1" },
+    "fixture_id": { "type": "string", "pattern": "^SSA_REGRESSION_FIXTURE_[12]$" },
+    "classification": { "const": "REGRESSION_INPUT_ONLY" },
+    "baseline_commit": { "const": "08ceb1995d05a17359fd53a53df5e8308f75c1d8" },
+    "source_capture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "capture_id",
+        "preservation_commit",
+        "environment",
+        "http_status",
+        "bytes_observed",
+        "body_sha256",
+        "receipt_sha256",
+        "body_repository_path",
+        "receipt_repository_path"
+      ],
+      "properties": {
+        "capture_id": { "type": "string", "pattern": "^SSA-CAPTURE-" },
+        "preservation_commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "environment": { "enum": ["CLOUD_SHELL", "WINDOWS_POWERSHELL"] },
+        "http_status": { "const": 403 },
+        "bytes_observed": { "enum": [379, 381] },
+        "body_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "receipt_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "body_repository_path": { "type": "string", "pattern": "/receipts/failures/.+/body/.+\\.bin$" },
+        "receipt_repository_path": { "type": "string", "pattern": "/receipts/failures/.+\\.json$" }
+      }
+    },
+    "expected_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "corpus_admitted",
+        "manifest_admitted",
+        "gate1_eligible",
+        "gate1_executed",
+        "new_capture_id_created"
+      ],
+      "properties": {
+        "corpus_admitted": { "const": false },
+        "manifest_admitted": { "const": false },
+        "gate1_eligible": { "const": false },
+        "gate1_executed": { "const": false },
+        "new_capture_id_created": { "const": false }
+      }
+    },
+    "routing_assertions": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["artifact_class", "target", "expected"],
+        "properties": {
+          "artifact_class": { "const": "HTTP_403_BODY" },
+          "target": { "enum": ["receipts/failures/body/", "corpus/raw/", "manifest/", "gate1/"] },
+          "expected": { "enum": ["LEGAL", "PROHIBITED"] }
+        }
+      }
+    },
+    "authority_created": { "const": false }
+  }
+}

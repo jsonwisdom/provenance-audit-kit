@@ -1,0 +1,160 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:jsonwisdom:public-replay:v0.1:ssa:SSA_GATE1_RECEIPT_v0.1",
+  "title": "SSA_GATE1_RECEIPT_v0.1",
+  "description": "Deterministic offline Gate-1 verification receipt. H_G1 is external SHA-256 over exact canonical receipt bytes and is never embedded in those bytes.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "protocol_id",
+    "corpus_id",
+    "scope_id",
+    "profile_id",
+    "profile_sha256",
+    "manifest_sha256",
+    "immutability_binding_sha256",
+    "manifest_rows_checked",
+    "unique_raw_objects",
+    "duplicate_observations",
+    "missing_objects",
+    "hash_failures",
+    "length_failures",
+    "malformed_rows",
+    "immutability_evidence_refs",
+    "immutability_resolver",
+    "check_results",
+    "errors",
+    "gate1_status",
+    "promotion_authorized",
+    "verification_mode",
+    "network_used",
+    "serialization_profile",
+    "receiptos_kernel",
+    "verifier_version",
+    "verifier_sha256"
+  ],
+  "properties": {
+    "schema": {"const": "SSA_GATE1_RECEIPT_v0.1"},
+    "protocol_id": {"const": "PUBLIC_REPLAY_PROTOCOL_v0.1"},
+    "corpus_id": {"type": "string", "minLength": 1},
+    "scope_id": {"type": "string", "minLength": 1},
+    "profile_id": {"type": "string", "minLength": 1},
+    "profile_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "immutability_binding_sha256": {"oneOf": [{"type": "string", "pattern": "^[0-9a-f]{64}$"}, {"type": "null"}]},
+    "manifest_rows_checked": {"type": "integer", "minimum": 0},
+    "unique_raw_objects": {"type": "integer", "minimum": 0},
+    "duplicate_observations": {"type": "integer", "minimum": 0},
+    "missing_objects": {"type": "integer", "minimum": 0},
+    "hash_failures": {"type": "integer", "minimum": 0},
+    "length_failures": {"type": "integer", "minimum": 0},
+    "malformed_rows": {"type": "integer", "minimum": 0},
+    "immutability_evidence_refs": {
+      "type": "array",
+      "maxItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^immutability/objects/[0-9a-f]{64}\\.json$"}
+    },
+    "immutability_resolver": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resolver_id", "implementation_sha256"],
+      "properties": {
+        "resolver_id": {"type": "string", "minLength": 1},
+        "implementation_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "check_results": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["V01", "V02", "V03", "V04", "V05", "V06", "V07", "V08"],
+      "properties": {
+        "V01": {"description": "Manifest bytes are canonical and every row is structurally valid.", "enum": ["PASS", "FAIL"]},
+        "V02": {"description": "Every manifest row resolves to an existing content-addressed raw object.", "enum": ["PASS", "FAIL"]},
+        "V03": {"description": "Each raw object's recomputed SHA-256 matches H_a and its reference.", "enum": ["PASS", "FAIL"]},
+        "V04": {"description": "Each declared bytes_len equals exact raw-object length.", "enum": ["PASS", "FAIL"]},
+        "V05": {"description": "Rows bind one capture/scope/profile tuple and satisfy admitted-row constraints.", "enum": ["PASS", "FAIL"]},
+        "V06": {"description": "A canonical post-manifest immutability binding selects one content-addressed evidence object that the bound resolver verifies sufficient offline.", "enum": ["PASS", "FAIL"]},
+        "V07": {"description": "Manifest completeness is proven for the declared required scope with no out-of-scope padding.", "enum": ["PASS", "FAIL"]},
+        "V08": {"description": "Promotion predicate: V01-V07 PASS, non-empty manifest/raw set, zero integrity counters, and empty errors.", "enum": ["PASS", "FAIL"]}
+      }
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["check_id", "code", "message"],
+        "properties": {
+          "check_id": {"enum": ["V01", "V02", "V03", "V04", "V05", "V06", "V07", "V08"]},
+          "code": {"type": "string", "minLength": 1},
+          "message": {"type": "string", "minLength": 1, "maxLength": 4096},
+          "manifest_row": {"oneOf": [{"type": "integer", "minimum": 1}, {"type": "null"}]},
+          "evidence_ref": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "gate1_status": {"enum": ["PASS", "FAIL"]},
+    "promotion_authorized": {"type": "boolean"},
+    "verification_mode": {"const": "OFFLINE_IMPORTED_CORPUS"},
+    "network_used": {"const": false},
+    "serialization_profile": {"const": "RECEIPTOS_NFC_JSON_V1_LF"},
+    "receiptos_kernel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "evidence_canonicalizer_path", "evidence_canonicalizer_sha256", "receipt_json_path", "receipt_json_sha256"],
+      "properties": {
+        "repository": {"const": "jsonwisdom/receiptos-base"},
+        "evidence_canonicalizer_path": {"const": "ep/canonical.py"},
+        "evidence_canonicalizer_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "receipt_json_path": {"const": "receiptos/core/hash.py"},
+        "receipt_json_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "verifier_version": {"const": "PUBLIC_REPLAY_GATE1_v0.1"},
+    "verifier_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"gate1_status": {"const": "PASS"}}, "required": ["gate1_status"]},
+      "then": {
+        "properties": {
+          "manifest_sha256": {"not": {"const": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}},
+          "immutability_binding_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "manifest_rows_checked": {"minimum": 1},
+          "unique_raw_objects": {"minimum": 1},
+          "missing_objects": {"const": 0},
+          "hash_failures": {"const": 0},
+          "length_failures": {"const": 0},
+          "malformed_rows": {"const": 0},
+          "immutability_evidence_refs": {"minItems": 1, "maxItems": 1},
+          "errors": {"maxItems": 0},
+          "promotion_authorized": {"const": true},
+          "check_results": {
+            "properties": {
+              "V01": {"const": "PASS"}, "V02": {"const": "PASS"}, "V03": {"const": "PASS"}, "V04": {"const": "PASS"},
+              "V05": {"const": "PASS"}, "V06": {"const": "PASS"}, "V07": {"const": "PASS"}, "V08": {"const": "PASS"}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"gate1_status": {"const": "FAIL"}}, "required": ["gate1_status"]},
+      "then": {
+        "properties": {"promotion_authorized": {"const": false}, "errors": {"minItems": 1}},
+        "anyOf": [
+          {"properties": {"check_results": {"properties": {"V01": {"const": "FAIL"}}}}},
+          {"properties": {"check_results": {"properties": {"V02": {"const": "FAIL"}}}}},
+          {"properties": {"check_results": {"properties": {"V03": {"const": "FAIL"}}}}},
+          {"properties": {"check_results": {"properties": {"V04": {"const": "FAIL"}}}}},
+          {"properties": {"check_results": {"properties": {"V05": {"const": "FAIL"}}}}},
+          {"properties": {"check_results": {"properties": {"V06": {"const": "FAIL"}}}}},
+          {"properties": {"check_results": {"properties": {"V07": {"const": "FAIL"}}}}},
+          {"properties": {"check_results": {"properties": {"V08": {"const": "FAIL"}}}}}
+        ]
+      }
+    }
+  ]
+}

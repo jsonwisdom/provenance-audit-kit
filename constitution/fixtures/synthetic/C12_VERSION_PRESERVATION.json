@@ -1,0 +1,13 @@
+{
+  "id": "C12",
+  "name": "VERSION_PRESERVATION",
+  "frozen": true,
+  "materialized_at": "2026-08-11",
+  "authority_created": false,
+  "result_vocabulary": [
+    "PASS",
+    "FAIL",
+    "MISSING",
+    "PROHIBITED"
+  ]
+}

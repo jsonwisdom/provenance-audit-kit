@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:jsonwisdom:public-replay:v0.1:immutability:GIT_NO_OVERWRITE_ATTESTATION_v0.1",
+  "title": "GIT_NO_OVERWRITE_ATTESTATION_v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "mechanism",
+    "object_format",
+    "commit_id",
+    "tree_id",
+    "H_manifest",
+    "invariant"
+  ],
+  "properties": {
+    "schema": {"const": "GIT_NO_OVERWRITE_ATTESTATION_v0.1"},
+    "mechanism": {"const": "GIT_CONTENT_ADDRESS_CHAIN"},
+    "object_format": {"enum": ["sha1", "sha256"]},
+    "commit_id": {"type": "string", "pattern": "^[0-9a-f]{40}([0-9a-f]{24})?$"},
+    "tree_id": {"type": "string", "pattern": "^[0-9a-f]{40}([0-9a-f]{24})?$"},
+    "H_manifest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "invariant": {"const": "OBJECT_ID_EQUALS_HASH_OF_TYPED_CONTENT_AND_PARENT_OBJECTS_BIND_CHILD_IDENTITIES"}
+  }
+}

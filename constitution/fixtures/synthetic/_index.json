@@ -1,0 +1,28 @@
+{
+  "normative_count": 16,
+  "materialized_at": "2026-08-11",
+  "C11": "C11_GATE1_AUTHORITY_BOUNDARY",
+  "normative_fixtures": [
+    "C01_EMPTY_TO_RULES.json",
+    "C02_RULES_TO_PATHS.json",
+    "C03_PATHS_TO_EVIDENCE_ROUTING.json",
+    "C04_EVIDENCE_ROUTING_403_LEGAL.json",
+    "C05_EVIDENCE_ROUTING_403_PROHIBITED_CORPUS.json",
+    "C06_VALIDITY_FUNCTION.json",
+    "C07_AUTHORITY_INHERITANCE.json",
+    "C08_ACQUISITION_NOT_ADMISSION.json",
+    "C09_MISSING_NOT_FALSE.json",
+    "C10_RUNTIME_SUCCESS_NOT_REDEFINE_COMPLETENESS.json",
+    "C11_GATE1_AUTHORITY_BOUNDARY.json",
+    "C12_VERSION_PRESERVATION.json",
+    "C13_DIRECTORY_CONTRACT_5_QUESTIONS.json",
+    "C14_SCHEMA_VALIDATION.json",
+    "C15_COMPLETENESS_BEHAVIOR.json",
+    "C16_AUTHORITY_CREATED_FALSE.json"
+  ],
+  "non_normative": [
+    "constitution/fixtures/supplemental/C17_EXTRA_FIXTURES_NOT_CREATE_RULES.json"
+  ],
+  "boundary_rule": "C17_EXTRA not counted, not in C01-C16 slot",
+  "authority_created": false
+}

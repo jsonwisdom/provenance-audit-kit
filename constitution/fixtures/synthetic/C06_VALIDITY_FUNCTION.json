@@ -1,0 +1,13 @@
+{
+  "id": "C06",
+  "name": "VALIDITY_FUNCTION",
+  "frozen": true,
+  "materialized_at": "2026-08-11",
+  "authority_created": false,
+  "result_vocabulary": [
+    "PASS",
+    "FAIL",
+    "MISSING",
+    "PROHIBITED"
+  ]
+}
