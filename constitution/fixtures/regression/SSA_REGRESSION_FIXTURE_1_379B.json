@@ -1,0 +1,31 @@
+{
+  "schema": "SSA_REGRESSION_FIXTURE_v0.1",
+  "fixture_id": "SSA_REGRESSION_FIXTURE_1",
+  "classification": "REGRESSION_INPUT_ONLY",
+  "baseline_commit": "08ceb1995d05a17359fd53a53df5e8308f75c1d8",
+  "source_capture": {
+    "capture_id": "SSA-CAPTURE-20260811T081746Z-1b0f9392b67e",
+    "preservation_commit": "cf20ad80a0790b1d89fc6353bb9867b0325ac5f7",
+    "environment": "CLOUD_SHELL",
+    "http_status": 403,
+    "bytes_observed": 379,
+    "body_sha256": "fa0877c49967ec2eb3ab64f30f68024c10033b7b6640b67efc83aa6621c22f8d",
+    "receipt_sha256": "0c82cf1e99e5f6135acd48e69eecc4d2507a63589bba25769741c2d6b38cc840",
+    "body_repository_path": "audits/public-institutions/ssa/SSA_PUBLIC_REPLAY_CORPUS_v0.1/receipts/failures/SSA-CAPTURE-20260811T081746Z-1b0f9392b67e/body/fa0877c49967ec2eb3ab64f30f68024c10033b7b6640b67efc83aa6621c22f8d.bin",
+    "receipt_repository_path": "audits/public-institutions/ssa/SSA_PUBLIC_REPLAY_CORPUS_v0.1/receipts/failures/SSA-CAPTURE-20260811T081746Z-1b0f9392b67e/0c82cf1e99e5f6135acd48e69eecc4d2507a63589bba25769741c2d6b38cc840.json"
+  },
+  "expected_state": {
+    "corpus_admitted": false,
+    "manifest_admitted": false,
+    "gate1_eligible": false,
+    "gate1_executed": false,
+    "new_capture_id_created": false
+  },
+  "routing_assertions": [
+    { "artifact_class": "HTTP_403_BODY", "target": "receipts/failures/body/", "expected": "LEGAL" },
+    { "artifact_class": "HTTP_403_BODY", "target": "corpus/raw/", "expected": "PROHIBITED" },
+    { "artifact_class": "HTTP_403_BODY", "target": "manifest/", "expected": "PROHIBITED" },
+    { "artifact_class": "HTTP_403_BODY", "target": "gate1/", "expected": "PROHIBITED" }
+  ],
+  "authority_created": false
+}

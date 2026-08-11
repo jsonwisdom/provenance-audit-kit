@@ -1,0 +1,21 @@
+{
+  "schema": "SSA_REGRESSION_INDEX_v0.1",
+  "phase": "STEP_8_REGRESSION_FIXTURES",
+  "baseline_commit": "08ceb1995d05a17359fd53a53df5e8308f75c1d8",
+  "fixture_count": 2,
+  "fixtures": [
+    "SSA_REGRESSION_FIXTURE_1_379B.json",
+    "SSA_REGRESSION_FIXTURE_2_381B.json"
+  ],
+  "source_capture_commits": [
+    "cf20ad80a0790b1d89fc6353bb9867b0325ac5f7",
+    "51465bb9612c26b58897bc92404168c781b7af0f"
+  ],
+  "classification": "REGRESSION_INPUT_ONLY",
+  "corpus_admitted": false,
+  "manifest_created": false,
+  "acquisition_performed": false,
+  "new_capture_ids_created": false,
+  "gate1_executed": false,
+  "authority_created": false
+}
