@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:jsonwisdom:public-replay:v0.1:immutability:PUBLIC_REPLAY_IMMUTABILITY_BINDING_v0.1",
+  "title": "PUBLIC_REPLAY_IMMUTABILITY_BINDING_v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "capture_id", "H_manifest", "evidence_ref"],
+  "properties": {
+    "schema": {"const": "PUBLIC_REPLAY_IMMUTABILITY_BINDING_v0.1"},
+    "capture_id": {"type": "string", "minLength": 1},
+    "H_manifest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "evidence_ref": {"type": "string", "pattern": "^immutability/objects/[0-9a-f]{64}\\.json$"}
+  }
+}
