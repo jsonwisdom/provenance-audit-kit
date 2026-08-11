@@ -1,0 +1,40 @@
+{
+  "schema": "SSA_CROSS_ENVIRONMENT_403_FINDING_v0.1",
+  "classification": "DERIVED_REGRESSION_FINDING",
+  "observations": [
+    {
+      "environment": "GOOGLE_CLOUD_SHELL_LINUX",
+      "preservation_commit": "cf20ad80a0790b1d89fc6353bb9867b0325ac5f7",
+      "http_status": 403,
+      "bytes_observed": 379,
+      "body_sha256": "fa0877c49967ec2eb3ab64f30f68024c10033b7b6640b67efc83aa6621c22f8d"
+    },
+    {
+      "environment": "WINDOWS_POWERSHELL",
+      "preservation_commit": "51465bb9612c26b58897bc92404168c781b7af0f",
+      "http_status": 403,
+      "bytes_observed": 381,
+      "body_sha256": "d2175d6f2def93591fd5d80bb6f2f3cd1c66bb8c9eb7d86c4e396730f1b7a34f"
+    }
+  ],
+  "finding": "The same public SSA target returned HTTP 403 in two ordinary computing environments.",
+  "supported_interpretation": "CROSS_ENVIRONMENT_ACCESS_DENIAL_OBSERVED",
+  "not_observed": [
+    "HTTP_404"
+  ],
+  "not_proven": [
+    "SSA_GLOBALLY_UNAVAILABLE",
+    "OS_SPECIFIC_FAILURE",
+    "INTENTIONAL_SSA_DECEPTION",
+    "PRODUCTION_CORPUS_EXISTS"
+  ],
+  "routing": {
+    "failure_bodies": "receipts/failures/body/",
+    "failure_body_route": "LEGAL",
+    "corpus_raw_route": "PROHIBITED"
+  },
+  "corpus_admitted": false,
+  "manifest_created": false,
+  "gate1_executed": false,
+  "authority_created": false
+}
