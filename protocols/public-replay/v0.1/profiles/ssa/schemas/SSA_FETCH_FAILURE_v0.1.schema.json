@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://jsonwisdom.example/protocols/public-replay/v0.1/profiles/ssa/schemas/SSA_FETCH_FAILURE_v0.1.schema.json",
+  "$id": "urn:jsonwisdom:public-replay:v0.1:ssa:SSA_FETCH_FAILURE_v0.1",
   "title": "SSA_FETCH_FAILURE_v0.1",
   "description": "Typed receipt for a failed SSA public acquisition attempt. A valid failure receipt is evidence of the failed attempt only; it is never admitted as corpus bytes or a successful manifest observation.",
   "type": "object",
@@ -24,144 +24,58 @@
     "gate1_eligible"
   ],
   "properties": {
-    "schema": {
-      "const": "SSA_FETCH_FAILURE_v0.1"
-    },
-    "protocol_id": {
-      "const": "PUBLIC_REPLAY_PROTOCOL_v0.1"
-    },
-    "corpus_id": {
-      "type": "string",
-      "minLength": 1
-    },
-    "scope_id": {
-      "type": "string",
-      "minLength": 1
-    },
-    "source_url": {
-      "type": "string",
-      "format": "uri",
-      "pattern": "^https://"
-    },
-    "effective_url": {
-      "type": ["string", "null"],
-      "format": "uri"
-    },
-    "attempted_at": {
-      "type": "string",
-      "format": "date-time"
-    },
+    "schema": {"const": "SSA_FETCH_FAILURE_v0.1"},
+    "protocol_id": {"const": "PUBLIC_REPLAY_PROTOCOL_v0.1"},
+    "corpus_id": {"type": "string", "minLength": 1},
+    "scope_id": {"type": "string", "minLength": 1},
+    "source_url": {"type": "string", "format": "uri", "pattern": "^https://"},
+    "effective_url": {"type": ["string", "null"], "format": "uri"},
+    "attempted_at": {"type": "string", "format": "date-time"},
     "failure_class": {
       "type": "string",
-      "enum": [
-        "HTTP_STATUS",
-        "DNS",
-        "TIMEOUT",
-        "TLS",
-        "TRANSPORT",
-        "REDIRECT_POLICY",
-        "OTHER"
-      ]
+      "enum": ["HTTP_STATUS", "DNS", "TIMEOUT", "TLS", "TRANSPORT", "REDIRECT_POLICY", "OTHER"]
     },
-    "request_user_agent": {
-      "type": "string",
-      "minLength": 1
-    },
-    "request_contact": {
-      "type": "string",
-      "minLength": 1
-    },
+    "request_user_agent": {"type": "string", "minLength": 1},
+    "request_contact": {"type": "string", "minLength": 1},
     "http_status": {
       "oneOf": [
-        {
-          "type": "integer",
-          "minimum": 100,
-          "maximum": 599
-        },
-        {
-          "type": "null"
-        }
+        {"type": "integer", "minimum": 100, "maximum": 599},
+        {"type": "null"}
       ]
     },
     "transport_exit_code": {
       "oneOf": [
-        {
-          "type": "integer",
-          "minimum": 0
-        },
-        {
-          "type": "null"
-        }
+        {"type": "integer", "minimum": 0},
+        {"type": "null"}
       ]
     },
-    "content_type": {
-      "type": ["string", "null"]
-    },
-    "bytes_observed": {
-      "type": "integer",
-      "minimum": 0
-    },
-    "response_body_sha256": {
-      "type": "string",
-      "pattern": "^[0-9a-f]{64}$"
-    },
-    "response_headers_sha256": {
-      "type": "string",
-      "pattern": "^[0-9a-f]{64}$"
-    },
-    "failure_body_object": {
-      "type": "string",
-      "minLength": 1
-    },
-    "failure_headers_object": {
-      "type": "string",
-      "minLength": 1
-    },
-    "error_text": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 4096
-    },
-    "corpus_admitted": {
-      "const": false
-    },
-    "manifest_admitted": {
-      "const": false
-    },
-    "gate1_eligible": {
-      "const": false
-    }
+    "content_type": {"type": ["string", "null"]},
+    "bytes_observed": {"type": "integer", "minimum": 0},
+    "response_body_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "response_headers_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "failure_body_object": {"type": "string", "minLength": 1},
+    "failure_headers_object": {"type": "string", "minLength": 1},
+    "error_text": {"type": "string", "minLength": 1, "maxLength": 4096},
+    "corpus_admitted": {"const": false},
+    "manifest_admitted": {"const": false},
+    "gate1_eligible": {"const": false}
   },
   "allOf": [
     {
       "if": {
-        "properties": {
-          "bytes_observed": {
-            "minimum": 1
-          }
-        },
+        "properties": {"bytes_observed": {"minimum": 1}},
         "required": ["bytes_observed"]
       },
-      "then": {
-        "required": ["response_body_sha256"]
-      }
+      "then": {"required": ["response_body_sha256"]}
     },
     {
       "if": {
-        "properties": {
-          "failure_class": {
-            "const": "HTTP_STATUS"
-          }
-        },
+        "properties": {"failure_class": {"const": "HTTP_STATUS"}},
         "required": ["failure_class"]
       },
       "then": {
         "properties": {
-          "http_status": {
-            "type": "integer",
-            "minimum": 400,
-            "maximum": 599
-          }
+          "http_status": {"type": "integer", "minimum": 400, "maximum": 599}
         }
       }
     }
