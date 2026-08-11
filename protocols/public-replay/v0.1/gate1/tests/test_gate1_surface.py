@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
+import socket
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -10,6 +13,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(HERE))
 
+import network_guard
 from kernel_adapter import ReceiptOSKernel
 from verifier import RejectUnresolvedImmutability, verify_gate1
 
@@ -96,6 +100,30 @@ class Gate1SurfaceTests(unittest.TestCase):
         _write_canonical(manifest, row)
         return temp, manifest, raw_root, profile, raw_path
 
+    def test_determinism_same_inputs_same_receipt_bytes_and_h_g1(self):
+        temp, manifest, raw_root, profile, _raw_path = self._fixture()
+        try:
+            first = verify_gate1(
+                manifest_path=manifest,
+                raw_root=raw_root,
+                profile_path=profile,
+                kernel=_kernel(),
+                immutability_verifier=_PassImmutability(),
+            )
+            second = verify_gate1(
+                manifest_path=manifest,
+                raw_root=raw_root,
+                profile_path=profile,
+                kernel=_kernel(),
+                immutability_verifier=_PassImmutability(),
+            )
+            self.assertEqual(first.receipt_bytes, second.receipt_bytes)
+            self.assertEqual(first.h_g1, second.h_g1)
+            self.assertNotIn("verified_at", first.receipt)
+            self.assertNotIn("verified_at", second.receipt)
+        finally:
+            temp.cleanup()
+
     def test_explicit_immutability_verifier_can_satisfy_v06(self):
         temp, manifest, raw_root, profile, _raw_path = self._fixture()
         try:
@@ -177,6 +205,22 @@ class Gate1SurfaceTests(unittest.TestCase):
             self.assertEqual(result.receipt["gate1_status"], "FAIL")
         finally:
             temp.cleanup()
+
+    def test_zz_offline_guard_blocks_network_and_process_spawn(self):
+        # This test intentionally poisons the process-global guard flags, so it
+        # must run after all verifier tests in this unittest process.
+        with self.assertRaises(network_guard.NetworkProhibited):
+            socket.getaddrinfo("example.invalid", 443)
+        with self.assertRaises(network_guard.NetworkProhibited):
+            socket.socket()
+        with self.assertRaises(network_guard.ProcessSpawnProhibited):
+            subprocess.Popen(["true"])
+        with self.assertRaises(network_guard.ProcessSpawnProhibited):
+            os.system("true")
+
+        self.assertTrue(network_guard.NETWORK_ATTEMPTED)
+        self.assertTrue(network_guard.PROCESS_SPAWN_ATTEMPTED)
+        self.assertFalse(network_guard.NETWORK_USED)
 
 
 if __name__ == "__main__":
