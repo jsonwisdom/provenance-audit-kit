@@ -17,16 +17,21 @@ def main() -> int:
     parser.add_argument("--manifest", required=True, type=Path)
     parser.add_argument("--raw-root", required=True, type=Path)
     parser.add_argument("--profile", required=True, type=Path)
+    parser.add_argument("--immutability-binding", required=True, type=Path)
     parser.add_argument("--receiptos-root", required=True, type=Path)
     parser.add_argument("--out", required=True, type=Path)
     args = parser.parse_args()
 
     network_guard.assert_offline_invariant()
     kernel = load_receiptos_kernel(args.receiptos_root)
+
+    # Production CLI remains deliberately fail-closed on V06 until the Git
+    # resolver integration receipt is independently executed and reviewed.
     result = verify_gate1(
         manifest_path=args.manifest,
         raw_root=args.raw_root,
         profile_path=args.profile,
+        immutability_binding_path=args.immutability_binding,
         kernel=kernel,
     )
     network_guard.assert_offline_invariant()
@@ -46,6 +51,7 @@ def main() -> int:
         "promotion_authorized": result.receipt["promotion_authorized"],
         "network_used": False,
         "H_manifest": result.receipt["manifest_sha256"],
+        "H_binding": result.receipt["immutability_binding_sha256"],
         "H_G1": result.h_g1,
         "receipt": str(args.out),
         "receipt_sha256_sidecar": str(sidecar),
