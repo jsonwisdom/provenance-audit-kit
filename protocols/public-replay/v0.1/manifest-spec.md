@@ -27,6 +27,8 @@ Minimum canonical fields:
 
 ```text
 capture_id
+scope_id
+profile_id
 header_ref
 H_a
 bytes_len
@@ -44,6 +46,8 @@ Institution profiles MAY require additional fields. Additional fields MUST be de
 Field semantics:
 
 - `capture_id`: immutable acquisition execution identifier.
+- `scope_id`: immutable identifier of the declared scope whose required observations this manifest is intended to satisfy.
+- `profile_id`: immutable identifier of the institution profile that constrained acquisition and later verification.
 - `header_ref`: immutable reference to the separately stored observed-header artifact.
 - `H_a`: lowercase hexadecimal SHA-256 digest of the exact response body bytes `B_a`.
 - `bytes_len`: exact byte length of `B_a`.
@@ -66,7 +70,31 @@ FETCH_FAILURE != MANIFEST_ROW
 corpus_admitted = false -> ROW_PROHIBITED
 ```
 
-## 3. Row canonicalization
+## 3. Manifest identity domain
+
+One `manifest.jsonl` belongs to exactly one acquisition/scope/profile tuple:
+
+```text
+M = (capture_id, scope_id, profile_id)
+```
+
+Every row in the manifest MUST contain the same `capture_id`, `scope_id`, and `profile_id` values.
+
+```text
+MIXED_CAPTURE_IDS -> INVALID_MANIFEST
+MIXED_SCOPE_IDS -> INVALID_MANIFEST
+MIXED_PROFILE_IDS -> INVALID_MANIFEST
+```
+
+Because `scope_id` and `profile_id` are inside every canonical row, `H_manifest` cryptographically binds the manifest bytes to the interpretation boundary under which completeness and profile rules are evaluated.
+
+```text
+SAME OBSERVATION BYTES + DIFFERENT SCOPE/PROFILE
+-> DIFFERENT manifest_bytes
+-> DIFFERENT H_manifest
+```
+
+## 4. Row canonicalization
 
 Every row MUST be serialized deterministically as UTF-8 JSON with:
 
@@ -86,9 +114,11 @@ canonical_row = UTF8(JSON_SORTED_KEYS_COMPACT(row)) + 0x0A
 
 Numbers MUST be serialized as JSON integers for integer fields. Timestamps and hashes are strings. `immutability_evidence_ref` is either a non-empty string or JSON `null`.
 
+`observed_at` MUST use an RFC 3339 UTC representation ending in `Z`. Equivalent offset spellings such as `+00:00` are not canonical for this protocol version.
+
 Implementations MUST NOT pretty-print, insert insignificant spaces, use CRLF, emit a UTF-8 BOM, or reorder keys differently.
 
-## 4. File ordering
+## 5. File ordering
 
 `manifest.jsonl` is the byte concatenation of all canonical admitted rows in a deterministic total order.
 
@@ -114,11 +144,11 @@ Therefore the canonical ordering tuple is:
 (url, observed_at, capture_id, H_a, raw_ref, header_ref)
 ```
 
-using lexicographic ascending comparison of the serialized string values.
+using lexicographic ascending comparison of the canonical string values.
 
 If two rows are byte-identical after canonicalization, both rows remain present. Their multiplicity is evidence of multiple admitted observations and MUST NOT be silently collapsed.
 
-## 5. File canonicalization
+## 6. File canonicalization
 
 Canonical manifest bytes are:
 
@@ -135,7 +165,10 @@ A valid non-empty manifest MUST:
 - contain no comments;
 - contain no non-JSON prefix/suffix;
 - terminate the final row with LF;
-- contain only rows with `corpus_admitted = true`.
+- contain only rows with `corpus_admitted = true`;
+- contain exactly one `capture_id` value;
+- contain exactly one `scope_id` value;
+- contain exactly one `profile_id` value.
 
 For a successful capture:
 
@@ -145,7 +178,7 @@ manifest_bytes != empty_bytes
 
 The empty-file SHA-256 value MUST NOT be accepted as a successful manifest hash.
 
-## 6. Manifest hash
+## 7. Manifest hash
 
 `H_manifest` is defined only over the exact canonical `manifest.jsonl` bytes:
 
@@ -162,7 +195,7 @@ SAME manifest_bytes -> SAME H_manifest
 DIFFERENT manifest_bytes -> RECOMPUTE H_manifest
 ```
 
-## 7. Raw-object binding
+## 8. Raw-object binding
 
 For every manifest row `r`:
 
@@ -176,7 +209,7 @@ The manifest does not contain or normalize `B_a`; it binds to the exact content-
 
 A missing object, mismatched hash, mismatched byte length, or non-content-addressed raw reference is a Gate-1 failure condition.
 
-## 8. Header binding
+## 9. Header binding
 
 `header_ref` MUST identify an immutable observed-header artifact retained separately from `B_a`.
 
@@ -184,18 +217,20 @@ The active acquisition/profile specification MAY require an additional header di
 
 Headers never change `H_a`, which identifies response body bytes only in v0.1.
 
-## 9. Completion rule
+## 10. Completion rule
 
 The active scope MUST distinguish required observations from non-required/preflight observations before acquisition starts.
 
-Let `R(S)` be the set of required source URLs declared by scope `S`.
+Let `R(S)` be the set of required source URLs declared by the `scope_id` bound into the manifest.
 
 ```text
 MANIFEST_COMPLETION = TRUE
 iff
-for every u in R(S), at least one canonical row exists where:
-  row.url = u
-  AND row.corpus_admitted = true
+1. every row belongs to the declared scope/profile boundary; AND
+2. for every u in R(S), at least one canonical row exists where:
+     row.url = u
+     AND row.scope_id = S
+     AND row.corpus_admitted = true
 ```
 
 Otherwise:
@@ -205,11 +240,13 @@ MANIFEST_COMPLETION = FALSE
 GATE1_ELIGIBLE = FALSE
 ```
 
+A row whose URL is not admitted by the declared scope is invalid; extra out-of-scope rows cannot be used to manufacture completeness.
+
 A typed acquisition failure for any required URL is sufficient to keep manifest completion false under a fail-closed capture policy.
 
 A non-required preflight artifact MUST NOT satisfy a required scope URL and MUST NOT be inserted into the dataset manifest unless the scope explicitly declares it as an admitted dataset observation.
 
-## 10. Multiplicity and deduplication
+## 11. Multiplicity and deduplication
 
 Content-addressed storage deduplication and observation multiplicity are separate concerns.
 
@@ -227,7 +264,7 @@ Repeated observations of the same URL may also bind to the same `H_a`; each admi
 STORAGE_DEDUPLICATION != OBSERVATION_DEDUPLICATION
 ```
 
-## 11. Immutability evidence / V06
+## 12. Immutability evidence / V06
 
 Every row MUST carry `immutability_evidence_ref` as either:
 
@@ -239,7 +276,7 @@ null
 
 The presence of a non-null reference does not automatically prove V06; the generic verifier must validate sufficiency under the verification contract.
 
-A null value is deterministic negative evidence for Gate-1 eligibility on V06:
+A null value forces the V06 outcome:
 
 ```text
 exists row where immutability_evidence_ref = null
@@ -249,7 +286,7 @@ exists row where immutability_evidence_ref = null
 
 The verifier MUST NOT infer historical no-overwrite behavior from the current raw snapshot alone.
 
-## 12. Scope/profile extensions
+## 13. Scope/profile extensions
 
 Institution-specific profile fields may extend the canonical row only when all of the following are true:
 
@@ -266,7 +303,7 @@ PROFILE_EXTENDS_CORE
 PROFILE_MAY_NOT_REDEFINE_CORE
 ```
 
-## 13. Mutation rule
+## 14. Mutation rule
 
 After canonical `manifest.jsonl` bytes are emitted for a capture:
 
@@ -275,11 +312,11 @@ MANIFEST_CREATED -> IMMUTABLE
 MANIFEST_EDIT -> PROHIBITED
 ```
 
-If an observation is added, removed, corrected, reordered, or reserialized, that result is a new manifest artifact with a newly computed `H_manifest`.
+If an observation is added, removed, corrected, reordered, reserialized, assigned to another scope, or interpreted under another profile, that result is a new manifest artifact with a newly computed `H_manifest`.
 
 A manifest MUST NOT be edited in place to convert an incomplete capture into a complete one.
 
-## 14. Gate-1 handoff
+## 15. Gate-1 handoff
 
 The generic offline verifier consumes:
 
@@ -291,7 +328,7 @@ manifest.jsonl
 + immutability evidence references
 ```
 
-and produces a profile-compatible Gate-1 receipt.
+Before V01-V08, the verifier MUST confirm that the externally supplied active `scope_id` and `profile_id` exactly equal the values bound into every manifest row. A mismatch is fail-closed.
 
 For the SSA profile:
 
@@ -302,7 +339,7 @@ For the SSA profile:
 
 The verifier MUST recompute `H_manifest` from the exact supplied manifest bytes and MUST NOT trust a caller-supplied digest without recomputation.
 
-## 15. Promotion firewall
+## 16. Promotion firewall
 
 ```text
 MANIFEST_COMPLETION = TRUE != GATE1_PASS
