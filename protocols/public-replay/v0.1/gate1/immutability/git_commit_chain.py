@@ -339,10 +339,10 @@ def _validate_attestation(value: dict[str, Any], evidence: dict[str, Any]) -> No
 
 
 class GitCommitChainResolver:
-    """Production implementation of GIT_COMMIT_CHAIN_v0.1.
+    """Offline production implementation of GIT_COMMIT_CHAIN_v0.1.
 
-    The class is implemented but is not wired into the production CLI until its
-    real-ReceiptOS-kernel integration receipt is independently executed.
+    The implementation remains unwired from the production CLI until a new
+    independent real-ReceiptOS-kernel integration receipt passes for this code.
     """
 
     verifier_id = "GIT_COMMIT_CHAIN_RESOLVER_v0.1"
@@ -363,6 +363,7 @@ class GitCommitChainResolver:
         self.manifest_bytes = self.manifest_path.read_bytes()
         self.h_manifest = _sha256(self.manifest_bytes)
         self.rows = _manifest_rows(self.manifest_bytes)
+        self.implementation_sha256 = _sha256(Path(__file__).read_bytes())
         self._cache: dict[str, GitV06Result] = {}
 
     def resolve(self, evidence_ref: str) -> GitV06Result:
@@ -387,15 +388,11 @@ class GitCommitChainResolver:
                 raise _ResolutionFailure("IMMUTABILITY_EVIDENCE_TYPE_UNKNOWN", evidence_H=evidence_h)
             _validate_evidence(evidence)
             if evidence["H_manifest"] != self.h_manifest:
-                raise _ResolutionFailure(
-                    "IMMUTABILITY_MANIFEST_BINDING_MISMATCH", evidence_H=evidence_h
-                )
+                raise _ResolutionFailure("IMMUTABILITY_MANIFEST_BINDING_MISMATCH", evidence_H=evidence_h)
 
             capture_ids = {row.get("capture_id") for row in self.rows}
             if capture_ids != {evidence["capture_id"]}:
-                raise _ResolutionFailure(
-                    "IMMUTABILITY_CAPTURE_BINDING_MISMATCH", evidence_H=evidence_h
-                )
+                raise _ResolutionFailure("IMMUTABILITY_CAPTURE_BINDING_MISMATCH", evidence_H=evidence_h)
 
             objects: dict[str, _GitObject] = {}
             for proof_ref in evidence["proof_artifact_refs"]:
@@ -412,9 +409,7 @@ class GitCommitChainResolver:
                 obj = _validate_proof(proof, evidence["object_format"])
                 existing = objects.get(obj.object_id)
                 if existing is not None and existing != obj:
-                    raise _ResolutionFailure(
-                        "IMMUTABILITY_STORAGE_IDENTITY_MISMATCH", evidence_H=evidence_h
-                    )
+                    raise _ResolutionFailure("IMMUTABILITY_STORAGE_IDENTITY_MISMATCH", evidence_H=evidence_h)
                 objects[obj.object_id] = obj
 
             attestation, _att_h = _read_content_addressed_json(
@@ -431,19 +426,13 @@ class GitCommitChainResolver:
 
             commit = objects.get(evidence["commit_id"])
             if commit is None or commit.object_type != "commit":
-                raise _ResolutionFailure(
-                    "IMMUTABILITY_ATTESTATION_UNRESOLVABLE", evidence_H=evidence_h
-                )
+                raise _ResolutionFailure("IMMUTABILITY_ATTESTATION_UNRESOLVABLE", evidence_H=evidence_h)
             tree_id, parents = _parse_commit(commit.content, evidence["object_format"])
             if tree_id != evidence["tree_id"]:
-                raise _ResolutionFailure(
-                    "IMMUTABILITY_STORAGE_IDENTITY_MISMATCH", evidence_H=evidence_h
-                )
+                raise _ResolutionFailure("IMMUTABILITY_STORAGE_IDENTITY_MISMATCH", evidence_H=evidence_h)
             parent_commit_id = evidence["parent_commit_id"]
             if parent_commit_id is not None and parent_commit_id not in parents:
-                raise _ResolutionFailure(
-                    "IMMUTABILITY_PARENT_BINDING_MISMATCH", evidence_H=evidence_h
-                )
+                raise _ResolutionFailure("IMMUTABILITY_PARENT_BINDING_MISMATCH", evidence_H=evidence_h)
 
             manifest_blob_id = _lookup_path(
                 root_tree_id=evidence["tree_id"],
@@ -452,40 +441,26 @@ class GitCommitChainResolver:
                 object_format=evidence["object_format"],
             )
             if manifest_blob_id != evidence["manifest_blob_id"]:
-                raise _ResolutionFailure(
-                    "IMMUTABILITY_STORAGE_IDENTITY_MISMATCH", evidence_H=evidence_h
-                )
+                raise _ResolutionFailure("IMMUTABILITY_STORAGE_IDENTITY_MISMATCH", evidence_H=evidence_h)
             manifest_blob = objects.get(manifest_blob_id)
             if manifest_blob is None or manifest_blob.object_type != "blob":
-                raise _ResolutionFailure(
-                    "IMMUTABILITY_ATTESTATION_UNRESOLVABLE", evidence_H=evidence_h
-                )
+                raise _ResolutionFailure("IMMUTABILITY_ATTESTATION_UNRESOLVABLE", evidence_H=evidence_h)
             if manifest_blob.content != self.manifest_bytes:
-                raise _ResolutionFailure(
-                    "IMMUTABILITY_MANIFEST_BINDING_MISMATCH", evidence_H=evidence_h
-                )
+                raise _ResolutionFailure("IMMUTABILITY_MANIFEST_BINDING_MISMATCH", evidence_H=evidence_h)
 
             for row in self.rows:
                 digest = row.get("H_a")
                 raw_ref = row.get("raw_ref")
                 if not isinstance(digest, str) or _HEX64.fullmatch(digest) is None:
-                    raise _ResolutionFailure(
-                        "IMMUTABILITY_EVIDENCE_INSUFFICIENT", evidence_H=evidence_h
-                    )
+                    raise _ResolutionFailure("IMMUTABILITY_EVIDENCE_INSUFFICIENT", evidence_H=evidence_h)
                 if raw_ref != f"corpus/raw/{digest}" or not _safe_relative_path(raw_ref):
-                    raise _ResolutionFailure(
-                        "IMMUTABILITY_STORAGE_IDENTITY_MISMATCH", evidence_H=evidence_h
-                    )
+                    raise _ResolutionFailure("IMMUTABILITY_STORAGE_IDENTITY_MISMATCH", evidence_H=evidence_h)
                 raw_path = self.raw_root / digest
                 if not raw_path.is_file():
-                    raise _ResolutionFailure(
-                        "IMMUTABILITY_ATTESTATION_UNRESOLVABLE", evidence_H=evidence_h
-                    )
+                    raise _ResolutionFailure("IMMUTABILITY_ATTESTATION_UNRESOLVABLE", evidence_H=evidence_h)
                 raw_bytes = raw_path.read_bytes()
                 if _sha256(raw_bytes) != digest:
-                    raise _ResolutionFailure(
-                        "IMMUTABILITY_STORAGE_IDENTITY_MISMATCH", evidence_H=evidence_h
-                    )
+                    raise _ResolutionFailure("IMMUTABILITY_STORAGE_IDENTITY_MISMATCH", evidence_H=evidence_h)
                 raw_blob_id = _lookup_path(
                     root_tree_id=evidence["tree_id"],
                     path=raw_ref,
@@ -494,25 +469,17 @@ class GitCommitChainResolver:
                 )
                 raw_blob = objects.get(raw_blob_id)
                 if raw_blob is None or raw_blob.object_type != "blob":
-                    raise _ResolutionFailure(
-                        "IMMUTABILITY_ATTESTATION_UNRESOLVABLE", evidence_H=evidence_h
-                    )
+                    raise _ResolutionFailure("IMMUTABILITY_ATTESTATION_UNRESOLVABLE", evidence_H=evidence_h)
                 if raw_blob.content != raw_bytes:
-                    raise _ResolutionFailure(
-                        "IMMUTABILITY_STORAGE_IDENTITY_MISMATCH", evidence_H=evidence_h
-                    )
+                    raise _ResolutionFailure("IMMUTABILITY_STORAGE_IDENTITY_MISMATCH", evidence_H=evidence_h)
 
             prev_h = evidence["prev_H_manifest"]
             if prev_h is not None:
                 parent_id = evidence["parent_commit_id"]
                 parent_commit = objects.get(parent_id)
                 if parent_commit is None or parent_commit.object_type != "commit":
-                    raise _ResolutionFailure(
-                        "IMMUTABILITY_ATTESTATION_UNRESOLVABLE", evidence_H=evidence_h
-                    )
-                parent_tree_id, _parent_parents = _parse_commit(
-                    parent_commit.content, evidence["object_format"]
-                )
+                    raise _ResolutionFailure("IMMUTABILITY_ATTESTATION_UNRESOLVABLE", evidence_H=evidence_h)
+                parent_tree_id, _parent_parents = _parse_commit(parent_commit.content, evidence["object_format"])
                 previous_blob_id = _lookup_path(
                     root_tree_id=parent_tree_id,
                     path=evidence["manifest_path"],
@@ -520,25 +487,15 @@ class GitCommitChainResolver:
                     object_format=evidence["object_format"],
                 )
                 if previous_blob_id != evidence["prev_manifest_blob_id"]:
-                    raise _ResolutionFailure(
-                        "IMMUTABILITY_PARENT_BINDING_MISMATCH", evidence_H=evidence_h
-                    )
+                    raise _ResolutionFailure("IMMUTABILITY_PARENT_BINDING_MISMATCH", evidence_H=evidence_h)
                 previous_blob = objects.get(previous_blob_id)
                 if previous_blob is None or previous_blob.object_type != "blob":
-                    raise _ResolutionFailure(
-                        "IMMUTABILITY_ATTESTATION_UNRESOLVABLE", evidence_H=evidence_h
-                    )
+                    raise _ResolutionFailure("IMMUTABILITY_ATTESTATION_UNRESOLVABLE", evidence_H=evidence_h)
                 if _sha256(previous_blob.content) != prev_h:
-                    raise _ResolutionFailure(
-                        "IMMUTABILITY_PARENT_BINDING_MISMATCH", evidence_H=evidence_h
-                    )
+                    raise _ResolutionFailure("IMMUTABILITY_PARENT_BINDING_MISMATCH", evidence_H=evidence_h)
 
             network_guard.assert_offline_invariant()
-            result = GitV06Result(
-                V06="PASS",
-                reason="IMMUTABILITY_VERIFIED",
-                evidence_H=evidence_h,
-            )
+            result = GitV06Result(V06="PASS", reason="IMMUTABILITY_VERIFIED", evidence_H=evidence_h)
         except (network_guard.NetworkProhibited, network_guard.ProcessSpawnProhibited):
             result = GitV06Result(
                 V06="FAIL",
@@ -551,7 +508,7 @@ class GitCommitChainResolver:
                 reason=exc.reason,
                 evidence_H=exc.evidence_H if exc.evidence_H is not None else evidence_h,
             )
-        except (OSError, ValueError, TypeError) as exc:
+        except (OSError, ValueError, TypeError):
             result = GitV06Result(
                 V06="FAIL",
                 reason="IMMUTABILITY_EVIDENCE_INSUFFICIENT",
@@ -564,14 +521,15 @@ class GitCommitChainResolver:
         self,
         *,
         ref: str,
-        row: dict[str, Any],
+        capture_id: str,
+        h_manifest: str,
         capture_root: Path,
     ) -> tuple[bool, str]:
         if capture_root.resolve() != self.capture_root:
             return False, "IMMUTABILITY_CAPTURE_BINDING_MISMATCH"
-        result = self.resolve(ref)
-        if result.V06 != "PASS":
-            return False, result.reason
-        if row.get("capture_id") not in {r.get("capture_id") for r in self.rows}:
+        if h_manifest != self.h_manifest:
+            return False, "IMMUTABILITY_MANIFEST_BINDING_MISMATCH"
+        if {row.get("capture_id") for row in self.rows} != {capture_id}:
             return False, "IMMUTABILITY_CAPTURE_BINDING_MISMATCH"
-        return True, result.reason
+        result = self.resolve(ref)
+        return result.V06 == "PASS", result.reason
