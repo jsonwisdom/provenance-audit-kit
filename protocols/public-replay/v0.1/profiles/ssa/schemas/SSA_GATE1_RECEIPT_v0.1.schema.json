@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:jsonwisdom:public-replay:v0.1:ssa:SSA_GATE1_RECEIPT_v0.1",
   "title": "SSA_GATE1_RECEIPT_v0.1",
-  "description": "Offline Gate-1 verification receipt for an imported SSA public corpus. The receipt proves only the bounded V01-V08 evaluation over the supplied manifest and raw objects. H_G1 is intentionally excluded and must be computed from the exact canonical receipt bytes after serialization.",
+  "description": "Offline Gate-1 verification receipt for an imported SSA public corpus. The receipt proves only the bounded V01-V08 evaluation over the supplied manifest and raw objects. H_G1 is intentionally excluded and must be computed from the exact receipt bytes under the declared serialization profile after serialization.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -18,61 +18,35 @@
     "hash_failures",
     "length_failures",
     "malformed_rows",
+    "immutability_evidence_refs",
     "check_results",
     "errors",
     "gate1_status",
     "promotion_authorized",
     "verification_mode",
     "network_used",
+    "serialization_profile",
     "verified_at",
     "verifier_version"
   ],
   "properties": {
-    "schema": {
-      "const": "SSA_GATE1_RECEIPT_v0.1"
-    },
-    "protocol_id": {
-      "const": "PUBLIC_REPLAY_PROTOCOL_v0.1"
-    },
-    "corpus_id": {
-      "type": "string",
-      "minLength": 1
-    },
-    "scope_id": {
-      "type": "string",
-      "minLength": 1
-    },
-    "manifest_sha256": {
-      "type": "string",
-      "pattern": "^[0-9a-f]{64}$"
-    },
-    "manifest_rows_checked": {
-      "type": "integer",
-      "minimum": 0
-    },
-    "unique_raw_objects": {
-      "type": "integer",
-      "minimum": 0
-    },
-    "duplicate_observations": {
-      "type": "integer",
-      "minimum": 0
-    },
-    "missing_objects": {
-      "type": "integer",
-      "minimum": 0
-    },
-    "hash_failures": {
-      "type": "integer",
-      "minimum": 0
-    },
-    "length_failures": {
-      "type": "integer",
-      "minimum": 0
-    },
-    "malformed_rows": {
-      "type": "integer",
-      "minimum": 0
+    "schema": {"const": "SSA_GATE1_RECEIPT_v0.1"},
+    "protocol_id": {"const": "PUBLIC_REPLAY_PROTOCOL_v0.1"},
+    "corpus_id": {"type": "string", "minLength": 1},
+    "scope_id": {"type": "string", "minLength": 1},
+    "manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "manifest_rows_checked": {"type": "integer", "minimum": 0},
+    "unique_raw_objects": {"type": "integer", "minimum": 0},
+    "duplicate_observations": {"type": "integer", "minimum": 0},
+    "missing_objects": {"type": "integer", "minimum": 0},
+    "hash_failures": {"type": "integer", "minimum": 0},
+    "length_failures": {"type": "integer", "minimum": 0},
+    "malformed_rows": {"type": "integer", "minimum": 0},
+    "immutability_evidence_refs": {
+      "description": "Immutable references used to establish V06. Snapshot presence alone is insufficient to prove historical no-overwrite behavior.",
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
     },
     "check_results": {
       "type": "object",
@@ -120,98 +94,51 @@
         "additionalProperties": false,
         "required": ["check_id", "code", "message"],
         "properties": {
-          "check_id": {
-            "enum": ["V01", "V02", "V03", "V04", "V05", "V06", "V07", "V08"]
-          },
-          "code": {
-            "type": "string",
-            "minLength": 1
-          },
-          "message": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 4096
-          },
+          "check_id": {"enum": ["V01", "V02", "V03", "V04", "V05", "V06", "V07", "V08"]},
+          "code": {"type": "string", "minLength": 1},
+          "message": {"type": "string", "minLength": 1, "maxLength": 4096},
           "manifest_row": {
             "oneOf": [
-              {
-                "type": "integer",
-                "minimum": 1
-              },
-              {
-                "type": "null"
-              }
+              {"type": "integer", "minimum": 1},
+              {"type": "null"}
             ]
           },
-          "evidence_ref": {
-            "type": "string",
-            "minLength": 1
-          }
+          "evidence_ref": {"type": "string", "minLength": 1}
         }
       }
     },
-    "gate1_status": {
-      "enum": ["PASS", "FAIL"]
-    },
-    "promotion_authorized": {
-      "type": "boolean"
-    },
-    "verification_mode": {
-      "const": "OFFLINE_IMPORTED_CORPUS"
-    },
-    "network_used": {
-      "const": false
-    },
-    "verified_at": {
-      "type": "string",
-      "format": "date-time"
-    },
-    "verifier_version": {
+    "gate1_status": {"enum": ["PASS", "FAIL"]},
+    "promotion_authorized": {"type": "boolean"},
+    "verification_mode": {"const": "OFFLINE_IMPORTED_CORPUS"},
+    "network_used": {"const": false},
+    "serialization_profile": {
+      "description": "Deterministic receipt-byte serialization profile used before computing external H_G1. The profile value is protocol-defined; H_G1 itself is not embedded in this receipt.",
       "type": "string",
       "minLength": 1
-    }
+    },
+    "verified_at": {"type": "string", "format": "date-time"},
+    "verifier_version": {"type": "string", "minLength": 1}
   },
   "allOf": [
     {
       "if": {
-        "properties": {
-          "gate1_status": {
-            "const": "PASS"
-          }
-        },
+        "properties": {"gate1_status": {"const": "PASS"}},
         "required": ["gate1_status"]
       },
       "then": {
         "properties": {
           "manifest_sha256": {
-            "not": {
-              "const": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-            }
+            "not": {"const": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
           },
-          "manifest_rows_checked": {
-            "minimum": 1
-          },
-          "unique_raw_objects": {
-            "minimum": 1
-          },
-          "missing_objects": {
-            "const": 0
-          },
-          "hash_failures": {
-            "const": 0
-          },
-          "length_failures": {
-            "const": 0
-          },
-          "malformed_rows": {
-            "const": 0
-          },
-          "errors": {
-            "maxItems": 0
-          },
-          "promotion_authorized": {
-            "const": true
-          },
+          "manifest_rows_checked": {"minimum": 1},
+          "unique_raw_objects": {"minimum": 1},
+          "missing_objects": {"const": 0},
+          "hash_failures": {"const": 0},
+          "length_failures": {"const": 0},
+          "malformed_rows": {"const": 0},
+          "immutability_evidence_refs": {"minItems": 1},
+          "errors": {"maxItems": 0},
+          "promotion_authorized": {"const": true},
           "check_results": {
             "properties": {
               "V01": {"const": "PASS"},
@@ -229,21 +156,13 @@
     },
     {
       "if": {
-        "properties": {
-          "gate1_status": {
-            "const": "FAIL"
-          }
-        },
+        "properties": {"gate1_status": {"const": "FAIL"}},
         "required": ["gate1_status"]
       },
       "then": {
         "properties": {
-          "promotion_authorized": {
-            "const": false
-          },
-          "errors": {
-            "minItems": 1
-          }
+          "promotion_authorized": {"const": false},
+          "errors": {"minItems": 1}
         },
         "anyOf": [
           {"properties": {"check_results": {"properties": {"V01": {"const": "FAIL"}}}}},
