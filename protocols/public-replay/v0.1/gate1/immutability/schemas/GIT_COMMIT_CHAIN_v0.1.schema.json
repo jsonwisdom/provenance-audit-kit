@@ -1,24 +1,63 @@
 {
-  "$schema":"https://json-schema.org/draft/2020-12/schema",
-  "$id":"urn:jsonwisdom:public-replay:v0.1:immutability:GIT_COMMIT_CHAIN_v0.1",
-  "title":"GIT_COMMIT_CHAIN_v0.1",
-  "type":"object",
-  "additionalProperties":false,
-  "required":["schema","capture_id","H_manifest","prev_H_manifest","stored_at","storage_id","no_overwrite_attestation_ref","repository","object_format","commit_id","parent_commit_id","tree_id","manifest_blob_id","proof_artifact_refs"],
-  "properties":{
-    "schema":{"const":"GIT_COMMIT_CHAIN_v0.1"},
-    "capture_id":{"type":"string","minLength":1},
-    "H_manifest":{"type":"string","pattern":"^[0-9a-f]{64}$"},
-    "prev_H_manifest":{"oneOf":[{"type":"string","pattern":"^[0-9a-f]{64}$"},{"type":"null"}]},
-    "stored_at":{"type":"string","format":"date-time"},
-    "storage_id":{"type":"string","pattern":"^[0-9a-f]{40}([0-9a-f]{24})?$"},
-    "no_overwrite_attestation_ref":{"type":"string","pattern":"^immutability/attestations/[0-9a-f]{64}\\.json$"},
-    "repository":{"type":"string","minLength":1},
-    "object_format":{"enum":["sha1","sha256"]},
-    "commit_id":{"type":"string","pattern":"^[0-9a-f]{40}([0-9a-f]{24})?$"},
-    "parent_commit_id":{"oneOf":[{"type":"string","pattern":"^[0-9a-f]{40}([0-9a-f]{24})?$"},{"type":"null"}]},
-    "tree_id":{"type":"string","pattern":"^[0-9a-f]{40}([0-9a-f]{24})?$"},
-    "manifest_blob_id":{"type":"string","pattern":"^[0-9a-f]{40}([0-9a-f]{24})?$"},
-    "proof_artifact_refs":{"type":"array","minItems":1,"uniqueItems":true,"items":{"type":"string","pattern":"^immutability/proofs/[0-9a-f]{64}\\.[A-Za-z0-9._-]+$"}}
-  }
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:jsonwisdom:public-replay:v0.1:immutability:GIT_COMMIT_CHAIN_v0.1",
+  "title": "GIT_COMMIT_CHAIN_v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "capture_id",
+    "H_manifest",
+    "prev_H_manifest",
+    "stored_at",
+    "storage_id",
+    "no_overwrite_attestation_ref",
+    "repository",
+    "object_format",
+    "commit_id",
+    "parent_commit_id",
+    "tree_id",
+    "manifest_path",
+    "manifest_blob_id",
+    "prev_manifest_blob_id",
+    "proof_artifact_refs"
+  ],
+  "properties": {
+    "schema": {"const": "GIT_COMMIT_CHAIN_v0.1"},
+    "capture_id": {"type": "string", "minLength": 1},
+    "H_manifest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "prev_H_manifest": {"oneOf": [{"type": "string", "pattern": "^[0-9a-f]{64}$"}, {"type": "null"}]},
+    "stored_at": {"type": "string", "format": "date-time"},
+    "storage_id": {"type": "string", "pattern": "^[0-9a-f]{40}([0-9a-f]{24})?$"},
+    "no_overwrite_attestation_ref": {"type": "string", "pattern": "^immutability/attestations/[0-9a-f]{64}\\.json$"},
+    "repository": {"type": "string", "minLength": 1},
+    "object_format": {"enum": ["sha1", "sha256"]},
+    "commit_id": {"type": "string", "pattern": "^[0-9a-f]{40}([0-9a-f]{24})?$"},
+    "parent_commit_id": {"oneOf": [{"type": "string", "pattern": "^[0-9a-f]{40}([0-9a-f]{24})?$"}, {"type": "null"}]},
+    "tree_id": {"type": "string", "pattern": "^[0-9a-f]{40}([0-9a-f]{24})?$"},
+    "manifest_path": {"type": "string", "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+"},
+    "manifest_blob_id": {"type": "string", "pattern": "^[0-9a-f]{40}([0-9a-f]{24})?$"},
+    "prev_manifest_blob_id": {"oneOf": [{"type": "string", "pattern": "^[0-9a-f]{40}([0-9a-f]{24})?$"}, {"type": "null"}]},
+    "proof_artifact_refs": {
+      "type": "array",
+      "minItems": 3,
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^immutability/proofs/[0-9a-f]{64}\\.json$"}
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"prev_H_manifest": {"type": "null"}}, "required": ["prev_H_manifest"]},
+      "then": {"properties": {"prev_manifest_blob_id": {"type": "null"}}}
+    },
+    {
+      "if": {"properties": {"prev_H_manifest": {"type": "string"}}, "required": ["prev_H_manifest"]},
+      "then": {
+        "properties": {
+          "parent_commit_id": {"type": "string"},
+          "prev_manifest_blob_id": {"type": "string"}
+        }
+      }
+    }
+  ]
 }
