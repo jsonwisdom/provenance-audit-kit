@@ -27,6 +27,8 @@ The verifier performs no network acquisition, refetch, repair, normalization of 
 
 `network_used = false` is hard-coded by the implementation. `network_guard.py` disables socket creation/name resolution/connection at import time and records any attempted network use as a fail-closed execution violation.
 
+Gate 1 v0.1 also prohibits child-process/system-spawn operations. This prevents a future resolver from escaping the Python socket guard through an external network client. If a later immutability contract needs a local subprocess, that capability must be explicitly specified in a later reviewed protocol surface rather than silently enabled.
+
 ## ReceiptOS kernel dependency
 
 The production CLI loads two existing ReceiptOS rails from a local `receiptos-base` checkout:
@@ -80,13 +82,15 @@ V08 promotion predicate over V01-V07 + zero integrity counters
 
 ## V06 posture
 
-The generic surface defines an `ImmutabilityVerifier` interface. The CLI currently installs only the fail-closed resolver:
+The generic surface defines an `ImmutabilityVerifier` interface. The production CLI currently installs only the fail-closed resolver:
 
 ```text
 UNRESOLVED_IMMUTABILITY -> V06 FAIL
 ```
 
 A future immutability evidence verifier must be separately specified and reviewable before the CLI can produce `V06 = PASS`. Presence of a non-null reference never auto-passes V06.
+
+The test suite may inject a test-only resolver to exercise the complete V01-V08 conjunction. A test fixture PASS is not a production Gate-1 PASS.
 
 ## Profile
 
@@ -103,6 +107,8 @@ allowed_urls[]
 success_status_codes[]
 ```
 
-The exact profile file bytes are hashed as `profile_sha256` and bound into the Gate-1 receipt.
+A profile instance MUST itself be serialized using the ReceiptOS byte-strict evidence canonicalizer as exactly one UTF-8 JSON object followed by LF. Pretty-printed or otherwise non-canonical profile files fail closed.
+
+The exact canonical profile file bytes are hashed as `profile_sha256` and bound into the Gate-1 receipt.
 
 SSA is one profile. White House or any later institution uses the same verifier with a different profile/scope input.
