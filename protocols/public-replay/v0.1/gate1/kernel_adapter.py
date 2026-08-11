@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import importlib.util
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from types import ModuleType
@@ -29,7 +30,14 @@ def _load_module(name: str, path: Path) -> ModuleType:
     if spec is None or spec.loader is None:
         raise KernelUnavailable(f"RECEIPTOS_KERNEL_IMPORT_FAILED path={path}")
     module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+    sys.modules[name] = module
+    try:
+        spec.loader.exec_module(module)
+    except Exception as exc:
+        sys.modules.pop(name, None)
+        raise KernelUnavailable(
+            f"RECEIPTOS_KERNEL_IMPORT_FAILED path={path} error={type(exc).__name__}:{exc}"
+        ) from exc
     return module
 
 
