@@ -1,11 +1,15 @@
 # PUBLIC_REPLAY_GATE1_v0.1
 
-Status: IMPLEMENTATION SURFACE / FAIL-CLOSED
+Status: IMPLEMENTED / FAIL-CLOSED / GIT V06 INTEGRATION PENDING
 
 This directory implements the institution-neutral offline Gate-1 boundary for `PUBLIC_REPLAY_PROTOCOL_v0.1`.
 
 ```text
-manifest.jsonl + corpus/raw/ + profile.json
+manifest.jsonl
++ corpus/raw/
++ profile.json
++ immutability/bindings/<H_binding>.json
++ referenced immutability evidence/proofs
                 |
                 v
        PUBLIC_REPLAY_GATE1_v0.1
@@ -18,52 +22,64 @@ manifest.jsonl + corpus/raw/ + profile.json
 
 ```text
 GATE1 != ACQUISITION
+GATE1 != SEALING PHASE
 GATE1 != INSTITUTION
 GATE1 != KNOWLEDGE STATE
 GATE1 != WITNESS
 ```
 
-The verifier performs no network acquisition, refetch, repair, normalization of source bytes, or policy interpretation.
+The verifier performs no network acquisition, refetch, repair, source-byte normalization, or policy interpretation.
 
-`network_used = false` is hard-coded by the implementation. `network_guard.py` disables socket creation/name resolution/connection at import time and records any attempted network use as a fail-closed execution violation.
+`network_used=false` is hard-coded. `network_guard.py` blocks socket creation/name resolution/connection and child-process/system-spawn attempts at runtime.
 
-Gate 1 v0.1 also prohibits child-process/system-spawn operations. This prevents a future resolver from escaping the Python socket guard through an external network client. If a later immutability contract needs a local subprocess, that capability must be explicitly specified in a later reviewed protocol surface rather than silently enabled.
+## Cycle-free V06 input
+
+The manifest contains no post-manifest immutability reference.
+
+```text
+manifest_bytes
+-> H_manifest
+-> immutability evidence
+-> H_binding
+-> Gate1
+```
+
+The verifier recomputes both `H_manifest` and `H_binding`. A binding selects exactly one content-addressed evidence object in v0.1.
 
 ## ReceiptOS kernel dependency
 
-The production CLI loads two existing ReceiptOS rails from a local `receiptos-base` checkout:
+The verifier loads exact local ReceiptOS rails:
 
 ```text
 ep/canonical.py::canonicalize
 receiptos/core/hash.py::canonical_json
 ```
 
-The first is used for byte-strict manifest/profile canonicalization. The second is used for deterministic Gate-1 receipt serialization.
+Their exact source SHA-256 values are bound into the Gate-1 receipt.
 
-The verifier records SHA-256 digests of both exact kernel source files in the receipt. Missing kernel files/imports fail closed. The verifier does not silently substitute an internal serializer.
+Missing kernel files/imports fail closed. The verifier never silently substitutes an internal serializer.
+
+## Verifier and resolver identity
+
+The canonical receipt also binds:
+
+```text
+verifier_sha256
+immutability_resolver.resolver_id
+immutability_resolver.implementation_sha256
+```
+
+So “same verifier/resolver” is a content identity, not a label.
 
 ## Determinism
 
-Canonical receipt file bytes are:
-
 ```text
-UTF8(receiptos.core.hash.canonical_json(receipt)) + LF
+canonical_receipt_bytes = UTF8(receiptos.core.hash.canonical_json(receipt)) + LF
+H_G1 = SHA256(canonical_receipt_bytes)
+H_G1 NOT_IN canonical_receipt_bytes
 ```
 
-under serialization profile:
-
-```text
-RECEIPTOS_NFC_JSON_V1_LF
-```
-
-`H_G1` is external:
-
-```text
-H_G1 = SHA256(exact canonical receipt file bytes)
-H_G1 NOT_IN receipt bytes
-```
-
-No wall-clock verification timestamp is included in the canonical Gate-1 receipt. Execution time belongs to external runner metadata so identical verification inputs can produce identical receipt bytes.
+No wall-clock `verified_at` is included in canonical receipt bytes.
 
 ## V01-V08
 
@@ -73,26 +89,35 @@ V02 raw-object existence
 V03 raw-object SHA-256/content-address binding
 V04 exact byte lengths
 V05 capture/scope/profile binding + admitted-row constraints
-V06 verified sufficient historical immutability evidence
-V07 declared-scope completion from the manifest/profile boundary
+V06 cycle-free binding + verified sufficient storage-seal evidence
+V07 declared-scope completion from manifest/profile
 V08 promotion predicate over V01-V07 + zero integrity counters
 ```
 
-A typed acquisition failure cannot be admitted as a manifest row. For a required URL, a failed acquisition therefore leaves the required admitted row absent and V07 fails completion. Gate 1 does not inspect an undeclared sibling failure directory or any other hidden input to infer completion.
+A required acquisition failure leaves the required admitted row absent, so V07 fails without inspecting hidden sibling failure directories.
 
-`V08` creates no independent evidence. It is only the deterministic conjunction/promotion predicate.
+## V06 implementation posture
 
-## V06 posture
-
-The generic surface defines an `ImmutabilityVerifier` interface. The production CLI currently installs only the fail-closed resolver:
+The generic `GIT_COMMIT_CHAIN_RESOLVER_v0.1` is implemented under:
 
 ```text
-UNRESOLVED_IMMUTABILITY -> V06 FAIL
+gate1/immutability/git_commit_chain.py
 ```
 
-A future immutability evidence verifier must be separately specified and reviewable before the CLI can produce `V06 = PASS`. Presence of a non-null reference never auto-passes V06.
+It verifies Git commit/tree/blob identities from exact offline proof bytes without invoking `git`, ignores branch names, binds the exact current manifest/raw set, and can verify a prior-manifest parent chain.
 
-The test suite may inject a test-only resolver to exercise the complete V01-V08 conjunction. A test fixture PASS is not a production Gate-1 PASS.
+However the production CLI is deliberately NOT wired to it yet.
+
+```text
+GIT_RESOLVER_IMPLEMENTED = TRUE
+REAL_KERNEL_INTEGRATION_TEST_WRITTEN = TRUE
+REAL_KERNEL_INTEGRATION_RECEIPT = MISSING
+CLI_RESOLVER = UNRESOLVED_IMMUTABILITY_FAIL_CLOSED_v0.1
+PRODUCTION_V06_PASS = PROHIBITED
+PRODUCTION_GATE1_PASS = PROHIBITED
+```
+
+A new independent receipt must cover both the rebuilt generic surface suite and the real ReceiptOS kernel integration suite on the exact new head before the CLI may switch resolvers.
 
 ## Profile
 
@@ -109,8 +134,6 @@ allowed_urls[]
 success_status_codes[]
 ```
 
-A profile instance MUST itself be serialized using the ReceiptOS byte-strict evidence canonicalizer as exactly one UTF-8 JSON object followed by LF. Pretty-printed or otherwise non-canonical profile files fail closed.
+A profile is itself ReceiptOS byte-strict canonical JSON + LF and its exact bytes are hashed as `profile_sha256`.
 
-The exact canonical profile file bytes are hashed as `profile_sha256` and bound into the Gate-1 receipt.
-
-SSA is one profile. White House or any later institution uses the same verifier with a different profile/scope input.
+SSA is one profile. White House or later institutions use the same generic verifier with a different profile/scope.
