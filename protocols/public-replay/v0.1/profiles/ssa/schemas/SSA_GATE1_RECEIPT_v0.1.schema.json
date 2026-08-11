@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:jsonwisdom:public-replay:v0.1:ssa:SSA_GATE1_RECEIPT_v0.1",
   "title": "SSA_GATE1_RECEIPT_v0.1",
-  "description": "Deterministic offline Gate-1 verification receipt for an imported SSA public corpus. H_G1 is external SHA-256 over the exact canonical receipt file bytes and is never embedded in those bytes.",
+  "description": "Deterministic offline Gate-1 verification receipt. H_G1 is external SHA-256 over exact canonical receipt bytes and is never embedded in those bytes.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -13,6 +13,7 @@
     "profile_id",
     "profile_sha256",
     "manifest_sha256",
+    "immutability_binding_sha256",
     "manifest_rows_checked",
     "unique_raw_objects",
     "duplicate_observations",
@@ -21,6 +22,7 @@
     "length_failures",
     "malformed_rows",
     "immutability_evidence_refs",
+    "immutability_resolver",
     "check_results",
     "errors",
     "gate1_status",
@@ -29,7 +31,8 @@
     "network_used",
     "serialization_profile",
     "receiptos_kernel",
-    "verifier_version"
+    "verifier_version",
+    "verifier_sha256"
   ],
   "properties": {
     "schema": {"const": "SSA_GATE1_RECEIPT_v0.1"},
@@ -39,6 +42,7 @@
     "profile_id": {"type": "string", "minLength": 1},
     "profile_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
     "manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "immutability_binding_sha256": {"oneOf": [{"type": "string", "pattern": "^[0-9a-f]{64}$"}, {"type": "null"}]},
     "manifest_rows_checked": {"type": "integer", "minimum": 0},
     "unique_raw_objects": {"type": "integer", "minimum": 0},
     "duplicate_observations": {"type": "integer", "minimum": 0},
@@ -48,22 +52,32 @@
     "malformed_rows": {"type": "integer", "minimum": 0},
     "immutability_evidence_refs": {
       "type": "array",
+      "maxItems": 1,
       "uniqueItems": true,
-      "items": {"type": "string", "minLength": 1}
+      "items": {"type": "string", "pattern": "^immutability/objects/[0-9a-f]{64}\\.json$"}
+    },
+    "immutability_resolver": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resolver_id", "implementation_sha256"],
+      "properties": {
+        "resolver_id": {"type": "string", "minLength": 1},
+        "implementation_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
     },
     "check_results": {
       "type": "object",
       "additionalProperties": false,
       "required": ["V01", "V02", "V03", "V04", "V05", "V06", "V07", "V08"],
       "properties": {
-        "V01": {"description": "Manifest bytes are canonical under PUBLIC_REPLAY_MANIFEST_SPEC_v0.1 and every row is structurally valid.", "enum": ["PASS", "FAIL"]},
-        "V02": {"description": "Every manifest row resolves to an existing declared content-addressed raw object.", "enum": ["PASS", "FAIL"]},
-        "V03": {"description": "Each raw object's recomputed SHA-256 matches H_a and its content-addressed filename/reference.", "enum": ["PASS", "FAIL"]},
-        "V04": {"description": "Each declared bytes_len equals the exact raw-object byte length.", "enum": ["PASS", "FAIL"]},
-        "V05": {"description": "All rows bind to one capture_id/scope_id/profile_id tuple; scope/profile input identity matches; storage deduplication does not erase observation multiplicity.", "enum": ["PASS", "FAIL"]},
-        "V06": {"description": "Every immutability_evidence_ref is non-null and verified sufficient under the declared immutability verification contract. Presence alone never auto-passes.", "enum": ["PASS", "FAIL"]},
-        "V07": {"description": "Manifest completeness is proven for the declared required scope with zero admitted acquisition failures and no out-of-scope padding.", "enum": ["PASS", "FAIL"]},
-        "V08": {"description": "Promotion predicate: V01-V07 PASS, non-empty manifest/raw set, zero integrity counters, and empty errors. No independent evidence claim is created by V08.", "enum": ["PASS", "FAIL"]}
+        "V01": {"description": "Manifest bytes are canonical and every row is structurally valid.", "enum": ["PASS", "FAIL"]},
+        "V02": {"description": "Every manifest row resolves to an existing content-addressed raw object.", "enum": ["PASS", "FAIL"]},
+        "V03": {"description": "Each raw object's recomputed SHA-256 matches H_a and its reference.", "enum": ["PASS", "FAIL"]},
+        "V04": {"description": "Each declared bytes_len equals exact raw-object length.", "enum": ["PASS", "FAIL"]},
+        "V05": {"description": "Rows bind one capture/scope/profile tuple and satisfy admitted-row constraints.", "enum": ["PASS", "FAIL"]},
+        "V06": {"description": "A canonical post-manifest immutability binding selects one content-addressed evidence object that the bound resolver verifies sufficient offline.", "enum": ["PASS", "FAIL"]},
+        "V07": {"description": "Manifest completeness is proven for the declared required scope with no out-of-scope padding.", "enum": ["PASS", "FAIL"]},
+        "V08": {"description": "Promotion predicate: V01-V07 PASS, non-empty manifest/raw set, zero integrity counters, and empty errors.", "enum": ["PASS", "FAIL"]}
       }
     },
     "errors": {
@@ -98,7 +112,8 @@
         "receipt_json_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
       }
     },
-    "verifier_version": {"const": "PUBLIC_REPLAY_GATE1_v0.1"}
+    "verifier_version": {"const": "PUBLIC_REPLAY_GATE1_v0.1"},
+    "verifier_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
   },
   "allOf": [
     {
@@ -106,13 +121,14 @@
       "then": {
         "properties": {
           "manifest_sha256": {"not": {"const": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}},
+          "immutability_binding_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
           "manifest_rows_checked": {"minimum": 1},
           "unique_raw_objects": {"minimum": 1},
           "missing_objects": {"const": 0},
           "hash_failures": {"const": 0},
           "length_failures": {"const": 0},
           "malformed_rows": {"const": 0},
-          "immutability_evidence_refs": {"minItems": 1},
+          "immutability_evidence_refs": {"minItems": 1, "maxItems": 1},
           "errors": {"maxItems": 0},
           "promotion_authorized": {"const": true},
           "check_results": {
