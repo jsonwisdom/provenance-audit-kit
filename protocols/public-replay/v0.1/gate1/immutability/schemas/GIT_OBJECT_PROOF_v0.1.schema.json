@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:jsonwisdom:public-replay:v0.1:immutability:GIT_OBJECT_PROOF_v0.1",
+  "title": "GIT_OBJECT_PROOF_v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "object_format", "object_type", "object_id", "content_b64"],
+  "properties": {
+    "schema": {"const": "GIT_OBJECT_PROOF_v0.1"},
+    "object_format": {"enum": ["sha1", "sha256"]},
+    "object_type": {"enum": ["commit", "tree", "blob"]},
+    "object_id": {"type": "string", "pattern": "^[0-9a-f]{40}([0-9a-f]{24})?$"},
+    "content_b64": {"type": "string", "minLength": 1, "contentEncoding": "base64"}
+  }
+}
