@@ -74,9 +74,11 @@ V03 raw-object SHA-256/content-address binding
 V04 exact byte lengths
 V05 capture/scope/profile binding + admitted-row constraints
 V06 verified sufficient historical immutability evidence
-V07 declared-scope completion + zero acquisition-failure receipts
+V07 declared-scope completion from the manifest/profile boundary
 V08 promotion predicate over V01-V07 + zero integrity counters
 ```
+
+A typed acquisition failure cannot be admitted as a manifest row. For a required URL, a failed acquisition therefore leaves the required admitted row absent and V07 fails completion. Gate 1 does not inspect an undeclared sibling failure directory or any other hidden input to infer completion.
 
 `V08` creates no independent evidence. It is only the deterministic conjunction/promotion predicate.
 
