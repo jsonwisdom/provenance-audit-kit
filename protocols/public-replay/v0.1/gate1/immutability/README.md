@@ -1,6 +1,6 @@
 # Gate-1 V06 Immutability Evidence
 
-Status: `FROZEN_DRAFT / TEST_EXECUTION_PENDING`
+Status: `FROZEN / INDEPENDENT_SURFACE_TEST_PASSED`
 
 This directory defines the institution-neutral evidence contract required before production Gate-1 may ever assign `V06=PASS`.
 
@@ -22,19 +22,35 @@ V06 proves: captured corpus storage is sealed against in-place overwrite.
 V06 does not prove: source truth, source permanence, policy correctness, availability forever, or authority.
 ```
 
+## Contract freeze evidence
+
+The independent surface-test gate has passed and the raw test output is retained under:
+
+```text
+gate1/test-receipts/13701b359f2d66c0bcfa45de49e621026ade3df7/
+```
+
+Bound receipt facts:
+
+```text
+HEAD_SHA=13701b359f2d66c0bcfa45de49e621026ade3df7
+TEST_FILE_SHA256=14c6ddb10797c1e0977f5a04651ea7420d517d468ccdad675f004021fdc8caed
+PYTHON=Python 3.12.3
+TEST_EXIT=0
+TEST_RESULT=PASS
+RAW_LOG_SHA256=37d8a0769d6c800296764c21f8e08feca52d770d400afabe65713604062cf749
+```
+
 ## Current production state
 
 ```text
+CONTRACT_FROZEN = TRUE
 PRODUCTION_RESOLVER = UNRESOLVED_IMMUTABILITY_FAIL_CLOSED_v0.1
+PRODUCTION_RESOLVER_IMPLEMENTED = FALSE
 PRODUCTION_V06_PASS = IMPOSSIBLE
 PRODUCTION_GATE1_PASS = IMPOSSIBLE
 ```
 
-A production resolver implementation is prohibited until:
-
-1. `gate1/tests/test_gate1_surface.py` is executed in an independent local environment;
-2. raw execution output is retained;
-3. this contract is reviewed against that execution evidence;
-4. the contract status is explicitly promoted beyond `TEST_EXECUTION_PENDING`.
+The contract may now be used as the specification for a later production resolver implementation, but that is a separate explicit transition. This freeze does not itself create `V06=PASS` or `H_G1^PASS`.
 
 No schema in this directory self-certifies its own sufficiency.
