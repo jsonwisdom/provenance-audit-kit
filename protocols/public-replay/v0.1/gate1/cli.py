@@ -8,6 +8,7 @@ import argparse
 import json
 from pathlib import Path
 
+from immutability.git_commit_chain import GitCommitChainResolver
 from kernel_adapter import KernelUnavailable, load_receiptos_kernel
 from verifier import Gate1InputError, verify_gate1
 
@@ -24,15 +25,20 @@ def main() -> int:
 
     network_guard.assert_offline_invariant()
     kernel = load_receiptos_kernel(args.receiptos_root)
+    immutability_verifier = GitCommitChainResolver(
+        kernel=kernel,
+        manifest_path=args.manifest,
+        raw_root=args.raw_root,
+    )
+    network_guard.assert_offline_invariant()
 
-    # Production CLI remains deliberately fail-closed on V06 until the Git
-    # resolver integration receipt is independently executed and reviewed.
     result = verify_gate1(
         manifest_path=args.manifest,
         raw_root=args.raw_root,
         profile_path=args.profile,
         immutability_binding_path=args.immutability_binding,
         kernel=kernel,
+        immutability_verifier=immutability_verifier,
     )
     network_guard.assert_offline_invariant()
 
