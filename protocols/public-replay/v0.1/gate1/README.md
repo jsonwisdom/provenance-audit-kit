@@ -1,6 +1,6 @@
 # PUBLIC_REPLAY_GATE1_v0.1
 
-Status: IMPLEMENTED / FAIL-CLOSED / GIT V06 INTEGRATION PENDING
+Status: IMPLEMENTED / FAIL-CLOSED / GIT V06 INTEGRATION PASSED / CLI UNWIRED
 
 This directory implements the institution-neutral offline Gate-1 boundary for `PUBLIC_REPLAY_PROTOCOL_v0.1`.
 
@@ -106,18 +106,45 @@ gate1/immutability/git_commit_chain.py
 
 It verifies Git commit/tree/blob identities from exact offline proof bytes without invoking `git`, ignores branch names, binds the exact current manifest/raw set, and can verify a prior-manifest parent chain.
 
-However the production CLI is deliberately NOT wired to it yet.
+An independent Google Cloud Shell execution at Gate-1 head:
+
+```text
+76272ebe789c86a85a7af512019c139ea72c70b5
+```
+
+passed both suites:
+
+```text
+surface tests: 8 / PASS
+real ReceiptOS kernel + Git V06 integration tests: 3 / PASS
+raw integration log SHA-256: 67b9862251c870631f63a566ff263d71be371ec09c653c381d2f6c30a393225a
+```
+
+The ReceiptOS checkout reported a dirty worktree, but the two kernel files actually loaded by Gate 1 matched the committed ReceiptOS head `7cc484e2803327170c3b96543f2735a1f95655b4` byte-for-byte by SHA-256:
+
+```text
+ep/canonical.py = 1c20180d08b0944e6328eca48d3edee46d43ca11aae634d35607c5629dad2cbe
+receiptos/core/hash.py = 79a1206ebbbf93e6b76ce060e4b3d12ac0f84161253361dcc8388e2070c8c4c3
+```
+
+Retained execution evidence lives under:
+
+```text
+gate1/test-receipts/76272ebe789c86a85a7af512019c139ea72c70b5/
+```
+
+Current posture:
 
 ```text
 GIT_RESOLVER_IMPLEMENTED = TRUE
 REAL_KERNEL_INTEGRATION_TEST_WRITTEN = TRUE
-REAL_KERNEL_INTEGRATION_RECEIPT = MISSING
+REAL_KERNEL_INTEGRATION_RECEIPT = PASS
 CLI_RESOLVER = UNRESOLVED_IMMUTABILITY_FAIL_CLOSED_v0.1
 PRODUCTION_V06_PASS = PROHIBITED
 PRODUCTION_GATE1_PASS = PROHIBITED
 ```
 
-A new independent receipt must cover both the rebuilt generic surface suite and the real ReceiptOS kernel integration suite on the exact new head before the CLI may switch resolvers.
+The integration receipt clears the resolver implementation test gate only. The production CLI remains deliberately unwired until a separate explicit promotion transition changes that boundary.
 
 ## Profile
 
