@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  echo "usage: pak registry ingest --envelope PATH --project ID [--ci-signed] --updated-by VALUE" >&2
+  exit 64
+}
+
+[[ ${1:-} == "registry" && ${2:-} == "ingest" ]] || usage
+shift 2
+
+ENVELOPE=""
+PROJECT_ID=""
+UPDATED_BY=""
+CI_SIGNED=false
+
+while (($#)); do
+  case "$1" in
+    --envelope) ENVELOPE=${2:-}; shift 2 ;;
+    --project) PROJECT_ID=${2:-}; shift 2 ;;
+    --updated-by) UPDATED_BY=${2:-}; shift 2 ;;
+    --ci-signed) CI_SIGNED=true; shift ;;
+    *) usage ;;
+  esac
+done
+
+[[ -n "$ENVELOPE" && -f "$ENVELOPE" ]] || { echo "missing envelope" >&2; exit 66; }
+[[ -n "$PROJECT_ID" ]] || { echo "missing project id" >&2; exit 64; }
+[[ -n "$UPDATED_BY" ]] || { echo "missing updated-by" >&2; exit 64; }
+command -v jq >/dev/null || { echo "jq required" >&2; exit 69; }
+command -v receiptos >/dev/null || { echo "receiptos required" >&2; exit 69; }
+
+receiptos verify --envelope "$ENVELOPE"
+
+INDEX="registry/index.ndjson"
+[[ -f "$INDEX" ]] || { echo "registry index missing" >&2; exit 66; }
+
+matches=$(jq -r --arg pid "$PROJECT_ID" 'select(.projectId == $pid) | .projectId' "$INDEX" | wc -l | tr -d ' ')
+[[ "$matches" == "1" ]] || { echo "project must exist exactly once: $PROJECT_ID" >&2; exit 65; }
+
+sources=$(jq -c '.sources // []' "$ENVELOPE")
+receipt_pointer=$(jq -r '.receiptPointer // empty' "$ENVELOPE")
+membrane_sha="sha256:$(sha256sum CONSTITUTION.md | awk '{print $1}')"
+updated_at=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+
+record=$(jq -cn \
+  --arg projectId "$PROJECT_ID" \
+  --arg membraneVersion "$membrane_sha" \
+  --argjson sources "$sources" \
+  --arg receiptPointer "$receipt_pointer" \
+  --arg updatedBy "$UPDATED_BY" \
+  --arg updatedAt "$updated_at" \
+  '{projectId:$projectId,membraneVersion:$membraneVersion,sources:$sources,status:"PASS",authorityCreated:false,receiptPointer:$receiptPointer,updatedBy:$updatedBy,updatedAt:$updatedAt}')
+
+tmp=$(mktemp)
+trap 'rm -f "$tmp"' EXIT
+jq -c --arg pid "$PROJECT_ID" --argjson rec "$record" 'if .projectId == $pid then $rec else . end' "$INDEX" > "$tmp"
+mv "$tmp" "$INDEX"
+trap - EXIT
+
+if $CI_SIGNED; then
+  git config user.name "github-actions[bot]"
+  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+  git add "$INDEX"
+  git diff --cached --quiet || git commit -m "registry: ingest ${PROJECT_ID} [CI]"
+fi
