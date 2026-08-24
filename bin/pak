@@ -2,7 +2,7 @@
 set -euo pipefail
 
 usage() {
-  echo "usage: pak registry ingest --envelope PATH --project ID [--ci-signed] --updated-by VALUE" >&2
+  echo "usage: pak registry ingest --envelope DIR --project ID [--ci-signed] --updated-by VALUE" >&2
   exit 64
 }
 
@@ -24,13 +24,17 @@ while (($#)); do
   esac
 done
 
-[[ -n "$ENVELOPE" && -f "$ENVELOPE" ]] || { echo "missing envelope" >&2; exit 66; }
+[[ -n "$ENVELOPE" && -d "$ENVELOPE" ]] || { echo "missing envelope directory" >&2; exit 66; }
 [[ -n "$PROJECT_ID" ]] || { echo "missing project id" >&2; exit 64; }
 [[ -n "$UPDATED_BY" ]] || { echo "missing updated-by" >&2; exit 64; }
 command -v jq >/dev/null || { echo "jq required" >&2; exit 69; }
-command -v receiptos >/dev/null || { echo "receiptos required" >&2; exit 69; }
+command -v python3 >/dev/null || { echo "python3 required" >&2; exit 69; }
 
-receiptos verify --envelope "$ENVELOPE"
+for f in policy.json evidence.json findings.json score.json; do
+  [[ -f "$ENVELOPE/$f" ]] || { echo "envelope missing $f" >&2; exit 66; }
+done
+
+python3 verify.py --path "$ENVELOPE"
 
 INDEX="registry/index.ndjson"
 [[ -f "$INDEX" ]] || { echo "registry index missing" >&2; exit 66; }
@@ -38,8 +42,8 @@ INDEX="registry/index.ndjson"
 matches=$(jq -r --arg pid "$PROJECT_ID" 'select(.projectId == $pid) | .projectId' "$INDEX" | wc -l | tr -d ' ')
 [[ "$matches" == "1" ]] || { echo "project must exist exactly once: $PROJECT_ID" >&2; exit 65; }
 
-sources=$(jq -c '.sources // []' "$ENVELOPE")
-receipt_pointer=$(jq -r '.receiptPointer // empty' "$ENVELOPE")
+sources=$(jq -c '.sources // []' "$ENVELOPE/evidence.json")
+receipt_pointer=$(jq -r '.receiptPointer // empty' "$ENVELOPE/evidence.json")
 membrane_sha="sha256:$(sha256sum CONSTITUTION.md | awk '{print $1}')"
 updated_at=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
 
