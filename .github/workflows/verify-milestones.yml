@@ -15,12 +15,12 @@ jobs:
         run: bash scripts/verify_milestone_hashes.sh
 
       - name: Replay verifier pass fixture
-        run: python3 verify.py --path examples/pass
+        run: python3 verify.py --path jsonwisdom-provenance-verifier/testdata/case_pass
 
       - name: Replay verifier fail fixture
         run: |
           set +e
-          python3 verify.py --path examples/fail
+          python3 verify.py --path jsonwisdom-provenance-verifier/testdata/case_fail
           code=$?
           if [ "$code" -eq 0 ]; then
             echo "FAIL fixture incorrectly passed"
