@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       envelope_path:
-        description: Repository-relative verified envelope path
+        description: Repository-relative verifier workdir
         required: true
         type: string
       project_id:
@@ -27,13 +27,16 @@ jobs:
       - name: Require deterministic tools
         run: |
           command -v jq
-          command -v receiptos
+          command -v python3
           chmod +x bin/pak
 
       - name: Resolve envelope
         id: envelope
         run: |
-          test -f "${{ inputs.envelope_path }}"
+          test -d "${{ inputs.envelope_path }}"
+          for f in policy.json evidence.json findings.json score.json; do
+            test -f "${{ inputs.envelope_path }}/$f"
+          done
           echo "path=${{ inputs.envelope_path }}" >> "$GITHUB_OUTPUT"
 
       - name: Resolve project
@@ -42,14 +45,14 @@ jobs:
 
       - name: Verify envelope
         id: verify
-        run: receiptos verify --envelope "${{ steps.envelope.outputs.path }}"
+        run: python3 verify.py --path "${{ steps.envelope.outputs.path }}"
 
       - name: Ingest verified envelope
         if: steps.verify.outcome == 'success'
         run: |
           bin/pak registry ingest \
-            --envelope ${{ steps.envelope.outputs.path }} \
-            --project ${{ steps.project.outputs.id }} \
+            --envelope "${{ steps.envelope.outputs.path }}" \
+            --project "${{ steps.project.outputs.id }}" \
             --ci-signed \
             --updated-by "CI::${{ github.actor }}::${{ github.sha }}"
 
