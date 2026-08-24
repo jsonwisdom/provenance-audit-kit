@@ -1,0 +1,66 @@
+name: Registry Ingest
+
+on:
+  workflow_dispatch:
+    inputs:
+      envelope_path:
+        description: Repository-relative verifier workdir
+        required: true
+        type: string
+      project_id:
+        description: Existing registry projectId
+        required: true
+        default: PPPP-0001
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Require deterministic tools
+        run: |
+          command -v jq
+          command -v python3
+          chmod +x bin/pak
+
+      - name: Resolve envelope
+        id: envelope
+        run: |
+          test -d "${{ inputs.envelope_path }}"
+          for f in policy.json evidence.json findings.json score.json; do
+            test -f "${{ inputs.envelope_path }}/$f"
+          done
+          echo "path=${{ inputs.envelope_path }}" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve project
+        id: project
+        run: echo "id=${{ inputs.project_id }}" >> "$GITHUB_OUTPUT"
+
+      - name: Verify envelope
+        id: verify
+        run: python3 verify.py --path "${{ steps.envelope.outputs.path }}"
+
+      - name: Ingest verified envelope
+        if: steps.verify.outcome == 'success'
+        run: |
+          bin/pak registry ingest \
+            --envelope "${{ steps.envelope.outputs.path }}" \
+            --project "${{ steps.project.outputs.id }}" \
+            --ci-signed \
+            --updated-by "CI::${{ github.actor }}::${{ github.sha }}"
+
+      - name: Push CI registry commit
+        if: steps.verify.outcome == 'success'
+        run: |
+          if git log -1 --pretty=%s | grep -Fq "registry: ingest ${{ steps.project.outputs.id }} [CI]"; then
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          else
+            echo "No registry change to push"
+          fi
