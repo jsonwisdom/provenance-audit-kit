@@ -1,0 +1,61 @@
+{
+  "proof": "HUMAN_PINCER_DOGE_MUSK_TRUMP_2026_CORRECTION_V2",
+  "schema": "JSONWISDOM_RECEIPT_V0_1",
+  "audit_id": "HUMAN_PINCER_DOGE_MUSK_TRUMP_2026",
+  "correction_of": "HUMAN_PINCER_DOGE_MUSK_TRUMP_2026_SEAL_V1",
+  "v1_commit_sha": "f331771d137e85aa10ee32cf89906981104aff1a",
+  "v1_commit_time_github": "2026-08-24T02:34:06Z",
+  "v1_sealed_timestamp_claimed": "2026-08-23T00:00:00Z",
+  "correction_sealed_at_utc": "2026-08-24T02:35:00Z",
+  "authority": "jsonwisdom",
+  "repository": "jsonwisdom/provenance-audit-kit",
+  "branch": "main",
+  "command": "SEAL CORRECTION V2 — PRESERVE V1",
+  "protocol": "NO_FAKE_GREEN_V1",
+  "action": "ADDITIVE_CORRECTION_ONLY",
+  "v1_preservation": "UNTOUCHED — retained as evidence of error",
+  "verified_findings": {
+    "COMMIT_EXISTS": "MATCH",
+    "TWO_FILES_ADDED": "MATCH",
+    "ADDITIVE_ONLY": "MATCH",
+    "GAO_RECORD_NONEXISTENCE": "REJECT",
+    "GROK_OUTPUT_PRESERVED": "REJECT",
+    "SEALED_TIMESTAMP": "CONFLICT",
+    "GITHUB_BINDING_POST": "OBSERVED",
+    "SEAL_STATUS": "CONFLICT_REQUIRES_ADDITIVE_CORRECTION"
+  },
+  "gao_26_108615": {
+    "status": "EXISTS",
+    "title": "DOGE Wall of Receipts: More Transparency Needed on How Savings Are Derived from Contract, Grant, and Lease Terminations",
+    "report_number": "GAO-26-108615",
+    "published": "2026-08-06",
+    "publicly_released": "2026-08-06",
+    "official_url": "https://www.gao.gov/products/gao-26-108615",
+    "summary": "GAO found that DOGE's Wall of Receipts reported $110 billion in savings (as of 2026-07-07) but some estimates are incorrect or lack supporting evidence. Recommended that known data quality issues and limitations be prominently displayed. DOGE did not respond to GAO requests."
+  },
+  "pre_seal_snapshot": {
+    "HUMAN_PINCER_AUDIT": "OBSERVED_IN_CHAT",
+    "DRIVE_ARTIFACT": "NOT_OBSERVED",
+    "GITHUB_BINDING": "NOT_OBSERVED",
+    "GAO-26-108615_RECORD": "NOT_OBSERVED_IN_DRIVE_OR_GITHUB",
+    "MUTATION": "NONE"
+  },
+  "post_seal_state": {
+    "GITHUB_BINDING": "OBSERVED_AT_COMMIT f331771d137e85aa10ee32cf89906981104aff1a",
+    "GAO-26-108615_RECORD": "OBSERVED_AT_OFFICIAL_URL",
+    "V1_FALSE_STATEMENT": "independent check confirms no public GAO record — AFFIRMATIVELY CONTRADICTED",
+    "V1_GROK_OUTPUT": "Only description preserved; complete Grok output not embedded"
+  },
+  "correction_actions": [
+    "Bind official GAO-26-108615 URL and publication date",
+    "Distinguish pre-seal vs post-seal binding status",
+    "Record actual GitHub commit timestamp for V1",
+    "Mark V1 nonexistence claim as rejected",
+    "Mark V1 Grok-output completeness claim as rejected",
+    "Leave all V1 files unmodified as evidence"
+  ],
+  "no_fake_green": "ACTIVE",
+  "settlement_status": "CORRECTION_SEALED_ADDITIVE",
+  "canonical_evidence_layer": "GitHub commits (V1 + V2) + receipts",
+  "notes": "V1 is retained as immutable evidence of the material false statement. This V2 receipt is strictly additive."
+}
