@@ -1,66 +1,37 @@
 #!/usr/bin/env python3
-import json, hashlib, sys, platform
-from datetime import datetime, timezone
+import argparse
+import json
+import subprocess
+import sys
+from pathlib import Path
 
-DOMAINS = [
-  "source_integrity",
-  "dependency_lock",
-  "provenance_traceability",
-  "analysis_hygiene",
-  "build_reproducibility",
-  "security_policy_defined"
-]
+ENGINE = Path(__file__).parent / "jsonwisdom-provenance-verifier" / "src" / "verifier.py"
 
-def canon(obj):
-    return json.dumps(obj, sort_keys=True, separators=(",", ":")).encode()
-
-def sha(obj):
-    return hashlib.sha256(canon(obj)).hexdigest()
-
-def load(path):
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
 
 def main():
-    findings = load("examples/pass/findings.json")
-    statuses = [x["status"] for x in findings["findings"]]
-    domains = [x["domain"] for x in findings["findings"]]
+    parser = argparse.ArgumentParser(description="Thin frontend for jsonwisdom-provenance-verifier")
+    parser.add_argument("--path", required=True, help="Local verifier workdir")
+    args = parser.parse_args()
 
-    ok = (
-        len(domains) == 6 and
-        domains == DOMAINS and
-        all(s in ["PASS", "FAIL"] for s in statuses)
-    )
+    workdir = Path(args.path)
+    if not workdir.is_dir():
+        print(f"verify: workdir not found: {workdir}", file=sys.stderr)
+        return 2
+    if not ENGINE.is_file():
+        print(f"verify: engine not found: {ENGINE}", file=sys.stderr)
+        return 2
 
-    verification = {
-        "schema_id": "JSONWISDOM_VERIFICATION_V0_1",
-        "standard": "JSONWISDOM_HARDENED_STANDARD_V1",
-        "repository": "jsonwisdom/provenance-audit-kit",
-        "commit": "LOCAL",
-        "audit_id": findings["audit_id"],
-        "policy_sha256": findings["policy_sha256"],
-        "canonical_approval_sha256": "UNSIGNED",
-        "inputs": {
-            "findings_sha256": sha(findings)
-        },
-        "replay": {
-            "findings_recomputed": ok,
-            "score_recomputed": ok,
-            "policy_applied": ok,
-            "bit_for_bit_match": ok,
-            "network_access_required": False
-        },
-        "verifier": {
-            "tool": "jsonwisdom-provenance-verifier",
-            "version": "0.1.0",
-            "runtime": "python " + platform.python_version()
-        },
-        "verification_status": "PASS" if ok else "FAIL",
-        "verified_at_utc": datetime.now(timezone.utc).isoformat()
-    }
+    result = subprocess.run([sys.executable, str(ENGINE), str(workdir)])
 
-    print(json.dumps(verification, indent=2, sort_keys=True))
-    return 0 if ok else 1
+    verification = workdir / "verification.json"
+    if verification.is_file():
+        try:
+            print(json.dumps(json.loads(verification.read_text()), indent=2, sort_keys=True))
+        except (json.JSONDecodeError, OSError):
+            print(verification.read_text(), end="")
+
+    return result.returncode
+
 
 if __name__ == "__main__":
     sys.exit(main())
